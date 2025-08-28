@@ -1,7 +1,7 @@
-import React from 'react';
-import { Routes, Route } from 'react-router-dom';
-import LandingPage from './LandingPage';
-import AiAssistantPage from './AiAssistantPage';
+import React from "react";
+import { Routes, Route } from "react-router-dom";
+import LandingPage from "./LandingPage";
+import AiAssistantPage from "./AiAssistantPage";
 
 const App = () => {
   return (
