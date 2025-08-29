@@ -15,7 +15,6 @@ const NavigationBar = ({ language = "hi", onLanguageChange }) => {
       jobs: "नौकरियां",
       assistant: "AI सहायक",
       profile: "प्रोफाइल",
-      contact: "संपर्क",
       login: "लॉग इन",
       signup: "साइन अप",
       language: "भाषा",
@@ -28,7 +27,6 @@ const NavigationBar = ({ language = "hi", onLanguageChange }) => {
       jobs: "Jobs",
       assistant: "AI Assistant",
       profile: "Profile",
-      contact: "Contact",
       login: "Login",
       signup: "Sign Up",
       language: "Language",
@@ -125,11 +123,6 @@ const NavigationBar = ({ language = "hi", onLanguageChange }) => {
               <li>
                 <Link to="/profile" className="nav-link">
                   {content[language].profile}
-                </Link>
-              </li>
-              <li>
-                <Link to="/contact" className="nav-link">
-                  {content[language].contact}
                 </Link>
               </li>
               <li className="language-dropdown-container">

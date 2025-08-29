@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import NavigationBar from "./components/NavigationBar";
-import HeroSection from "./components/HeroSection";
-import JobListings from "./components/JobListings";
-import AiAssistant from "./components/AiAssistant";
-import Footer from "./components/Footer";
-import "./styles/LandingPage.css";
+import NavigationBar from "../components/NavigationBar";
+import HeroSection from "../components/HeroSection";
+import JobListings from "../components/JobListings";
+import AiAssistant from "../components/AiAssistant";
+import Footer from "../components/Footer";
+import "./LandingPage.css";
 
 const LandingPage = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -260,7 +260,7 @@ const LandingPage = () => {
             </section>
           </main>
 
-          <Footer />
+          <Footer language={language} />
         </>
       )}
     </div>

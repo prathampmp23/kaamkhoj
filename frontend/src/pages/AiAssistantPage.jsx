@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import axios from "axios";
-import "./App.css";
+import "./AiAssistantPage.css";
 import { useLocation } from "react-router-dom";
-import NavigationBar from "./components/NavigationBar";
+import NavigationBar from "../components/NavigationBar";
 
 function App() {
   const [text, setText] = useState("");
