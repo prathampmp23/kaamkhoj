@@ -23,7 +23,7 @@ const HeroSection = ({ language = "hi" }) => {
       subtitle: "Fill forms using voice and reach your new job",
       searchPlaceholder: "Search by skill or city",
       searchButton: "Search",
-      popularSearches: "Popular Searches",
+      popularSearches: "Popular jobs",
       popularTags: [
         "Driver",
         "Cook",
@@ -43,7 +43,7 @@ const HeroSection = ({ language = "hi" }) => {
           <h1 className="hero-title">{translations[language].title}</h1>
           <p className="hero-subtitle">{translations[language].subtitle}</p>
 
-          <div className="search-box">
+          {/* <div className="search-box">
             <input
               type="text"
               placeholder={translations[language].searchPlaceholder}
@@ -53,7 +53,7 @@ const HeroSection = ({ language = "hi" }) => {
               <i className="fas fa-search"></i>{" "}
               {translations[language].searchButton}
             </button>
-          </div>
+          </div> */}
 
           <div className="popular-searches">
             <span>{translations[language].popularSearches}: </span>

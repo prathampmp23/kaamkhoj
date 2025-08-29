@@ -1,18 +1,16 @@
 /* Job Listings Styles */
 .job-listings-section {
   padding: 70px 0;
-  background-color: #f9f9ff;
 }
 
 .job-cards-container {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 25px;
   margin-top: 30px;
 }
 
 .job-card {
-  background-color: white;
   border-radius: 10px;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
   padding: 25px;
@@ -35,7 +33,6 @@
   left: 0;
   width: 5px;
   height: 100%;
-  background-color: #0057b8;
 }
 
 .job-icon {
@@ -51,7 +48,7 @@
 
 .job-icon i {
   font-size: 22px;
-  color: #0057b8;
+  color: rgb(0, 0, 0);
 }
 
 .job-details {
@@ -68,7 +65,7 @@
 
 .job-company {
   font-size: 1rem;
-  color: #0057b8;
+  color: rgb(98, 97, 97);
   margin-bottom: 10px;
   font-weight: 500;
 }
@@ -87,8 +84,8 @@
 }
 
 .job-apply-btn {
-  background-color: #0057b8;
-  color: white;
+  background-color: rgb(7, 236, 210);
+  color: rgb(0, 0, 0);
   border: none;
   border-radius: 5px;
   padding: 10px 15px;
@@ -100,7 +97,8 @@
 }
 
 .job-apply-btn:hover {
-  background-color: #004494;
+  background-color: rgb(3, 181, 161);
+  color: white;
 }
 
 .view-all-container {
@@ -110,8 +108,8 @@
 
 .view-all-btn {
   background: none;
-  border: 2px solid #0057b8;
-  color: #0057b8;
+  border: 2px solid rgb(7, 236, 210);
+  color: rgb(2, 180, 159);
   padding: 10px 25px;
   border-radius: 5px;
   font-size: 1rem;
@@ -128,8 +126,8 @@
 }
 
 .view-all-btn:hover {
-  background-color: #0057b8;
-  color: white;
+  background-color: rgb(7, 236, 210);
+  color: black;
 }
 
 .view-all-btn:hover i {

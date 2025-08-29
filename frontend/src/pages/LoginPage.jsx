@@ -14,7 +14,7 @@ export default function LoginPage() {
   });
   const [errors, setErrors] = useState({});
   const [notification, setNotification] = useState(null);
-  const [language, setLanguage] = useState("hi"); // Default language is Hindi
+  const [language, setLanguage] = useState("en"); // Default language is English
   const { isLoading, error, login, setError } = useAuth();
   const location = useLocation();
   
@@ -159,6 +159,7 @@ export default function LoginPage() {
         />
       )}
       <div className="login-container">
+        <div className="login-overlay"></div>
         <div className="login-card">
           <div className="login-header">
             <h1 className="login-title">{content[language].welcomeBack}</h1>
@@ -221,9 +222,9 @@ export default function LoginPage() {
                 />
                 <label htmlFor="rememberMe">{content[language].rememberMe}</label>
               </div>
-              <Link to="/forgot-password" className="forgot-password">
+              {/* <Link to="/forgot-password" className="forgot-password">
                 {content[language].forgotPassword}
-              </Link>
+              </Link> */}
             </div>
             
             <button 
@@ -243,9 +244,9 @@ export default function LoginPage() {
             <button className="social-button" type="button">
               <i className="fab fa-google"></i>
             </button>
-            <button className="social-button" type="button">
+            {/* <button className="social-button" type="button">
               <i className="fab fa-facebook-f"></i>
-            </button>
+            </button> */}
             <button className="social-button" type="button">
               <i className="fab fa-linkedin-in"></i>
             </button>

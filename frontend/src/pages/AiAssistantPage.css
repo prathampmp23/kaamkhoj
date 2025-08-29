@@ -2,9 +2,9 @@
 .app-container {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   max-width: 100%;
-  padding-top: 100px; /* Increased space for the fixed navbar */
+  padding-top: 10px; /* Increased space for the fixed navbar */
   padding-bottom: 40px;
-  background-color: #f0f5ff; /* Light blue background */
+   /* background-color: #f0f5ff;  */
   background: linear-gradient(rgb(1, 50, 147), rgba(255, 255, 255, 0.7));
   min-height: 100vh;
   position: relative;
@@ -28,9 +28,9 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 60px;
-  background-color: white;
+  /* background-color: white; */
   border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 87, 184, 0.15);
+  /* box-shadow: 0 4px 20px rgba(0, 87, 184, 0.15); */
 }
 
 /* Inner content container */
@@ -38,7 +38,7 @@
 .app-content-wrapper .main-content {
   /* width: 100%; */
   padding: 20px;
-  background-color: #f9f9f9;
+  /* background-color: #f9f9f9; */
   border-radius: 10px;
   margin-bottom: 20px;
 }

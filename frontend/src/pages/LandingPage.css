@@ -9,13 +9,12 @@
 
 /* AI Integration Section */
 .ai-integration {
-  background-color: #f8f9fa;
-  padding: 60px 0;
+  padding: 40px 0;
   text-align: center;
 }
 
 .ai-integration h2 {
-  color: #0057b8;
+  color: #000000;
   margin-bottom: 20px;
   font-size: 2rem;
 }
@@ -32,7 +31,7 @@
 }
 
 .ai-page-btn {
-  background-color: #0057b8;
+  background-color: #0084b8;
   color: white;
   border: none;
   padding: 12px 25px;
@@ -59,8 +58,8 @@
 }
 
 .loader {
-  border: 5px solid rgba(0, 87, 184, 0.1);
-  border-top: 5px solid #0057b8;
+  border: 10px double rgba(0, 87, 184, 0.1);
+  border-top: 10px solid #0057b8;
   border-radius: 50%;
   width: 50px;
   height: 50px;
@@ -210,9 +209,8 @@ main {
 
 .section-title {
   text-align: center;
-  color: #0057b8;
+  color: rgb(35, 35, 35);
   font-size: 2rem;
-  margin-bottom: 40px;
   position: relative;
 }
 
@@ -221,7 +219,6 @@ main {
   position: absolute;
   width: 80px;
   height: 3px;
-  background-color: #0057b8;
   bottom: -10px;
   left: 50%;
   transform: translateX(-50%);
@@ -258,11 +255,11 @@ main {
 
 .feature-icon i {
   font-size: 24px;
-  color: #0057b8;
+  color: black;
 }
 
 .feature h3 {
-  color: #0057b8;
+  color: black;
   margin-bottom: 10px;
   font-size: 1.2rem;
 }
@@ -275,9 +272,8 @@ main {
 
 /* CTA Section */
 .cta-section {
-  background-color: #0268dd;
-  color: white;
-  padding: 60px 0;
+  color: rgb(0, 0, 0);
+  padding: 60px;
   text-align: center;
 }
 
@@ -297,19 +293,18 @@ main {
 .cta-button {
   display: inline-block;
   padding: 12px 30px;
-  background-color: white;
-  color: #0057b8;
+  background-color: rgb(7, 236, 210);
+  color: black;
   border: none;
   border-radius: 5px;
   font-size: 1.1rem;
-  font-weight: 600;
   cursor: pointer;
   transition: all 0.3s;
   text-decoration: none;
 }
 
 .cta-button:hover {
-  background-color: #f0f0f0;
+  color: white;
   transform: scale(1.05);
 }
 

@@ -1,7 +1,7 @@
 /* AI Assistant Styles */
 .ai-assistant-preview {
   padding: 70px 0;
-  background-color: #f0f8ff;
+  /* background-color: #f0f8ff; */
   position: relative;
   overflow: hidden;
 }

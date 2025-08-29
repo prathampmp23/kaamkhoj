@@ -660,7 +660,7 @@ function App() {
               >
                 {language === "hi-IN"
                   ? "🔊 सवाल दोहराएं"
-                  : "🔊 Repeat Question"}
+                  : "🔊 Repeat"}
               </button>
             </div>
           </div>

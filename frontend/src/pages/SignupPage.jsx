@@ -14,7 +14,7 @@ export default function SignupPage() {
     agreeTerms: false
   });
   const [errors, setErrors] = useState({});
-  const [language, setLanguage] = useState("hi"); // Default language is Hindi
+  const [language, setLanguage] = useState("en"); // Default language is English
   const { isLoading, error, register, setError } = useAuth();
   
   // Load saved language preference
@@ -142,9 +142,9 @@ export default function SignupPage() {
       newErrors.password = content[language].passwordLength;
     }
     
-    if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = content[language].passwordsDoNotMatch;
-    }
+    // if (formData.password !== formData.confirmPassword) {
+    //   newErrors.confirmPassword = content[language].passwordsDoNotMatch;
+    // }
     
     if (!formData.agreeTerms) {
       newErrors.agreeTerms = content[language].mustAgreeTerms;
@@ -173,6 +173,7 @@ export default function SignupPage() {
     <>
       <NavigationBar language={language} onLanguageChange={handleLanguageChange} />
       <div className="signup-container">
+        <div className="signup-overlay"></div>
         <div className="signup-card">
           <div className="signup-header">
             <h1 className="signup-title">{content[language].createAccount}</h1>
@@ -243,7 +244,7 @@ export default function SignupPage() {
               )}
             </div>
             
-            <div className="form-group">
+            {/* <div className="form-group">
               <label htmlFor="confirmPassword" className="form-label">
                 {content[language].confirmPassword}
               </label>
@@ -260,7 +261,7 @@ export default function SignupPage() {
               {errors.confirmPassword && (
                 <span className="error-message">{errors.confirmPassword}</span>
               )}
-            </div>
+            </div> */}
             
             <div className={`terms-checkbox ${errors.agreeTerms ? "is-invalid" : ""}`}>
               <input

@@ -1,6 +1,6 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
-import { AuthProvider } from "./context/AuthContext";
+import { AuthProvider } from "./context/AuthContext.jsx";
 import ProtectedRoute from "./components/ProtectedRoute";
 import LandingPage from "./pages/LandingPage";
 import AiAssistantPage from "./pages/AiAssistantPage";
@@ -12,14 +12,15 @@ const App = () => {
     <AuthProvider>
       <Routes>
         <Route path="/" element={<LandingPage />} />
-        <Route 
+        <Route path="/assistant" element={<AiAssistantPage />} />
+        {/* <Route 
           path="/assistant" 
           element={
             <ProtectedRoute>
               <AiAssistantPage />
             </ProtectedRoute>
           } 
-        />
+        /> */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
       </Routes>

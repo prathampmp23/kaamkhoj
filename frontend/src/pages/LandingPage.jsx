@@ -9,7 +9,7 @@ import "./LandingPage.css";
 
 const LandingPage = () => {
   const [isLoading, setIsLoading] = useState(true);
-  const [language, setLanguage] = useState("hi"); // Default language is Hindi ('hi')
+  const [language, setLanguage] = useState("en"); // Default language is English ('en')
 
   useEffect(() => {
     // Check if user has a language preference stored
@@ -216,23 +216,13 @@ const LandingPage = () => {
               </div>
             </section>
 
+            <AiAssistant language={language} />
+
             <JobListings
               title={content[language].jobListings}
               showCount={4}
               language={language}
             />
-
-            <section className="cta-section">
-              <div className="container">
-                <h2>{content[language].cta.title}</h2>
-                <p>{content[language].cta.description}</p>
-                <button className="cta-button">
-                  {content[language].cta.button}
-                </button>
-              </div>
-            </section>
-
-            <AiAssistant language={language} />
 
             <section className="ai-integration">
               <div className="container">
@@ -258,6 +248,16 @@ const LandingPage = () => {
                 </Link>
               </div>
             </section>
+
+            {/* <section className="cta-section">
+              <div className="container">
+                <h2>{content[language].cta.title}</h2>
+                <p>{content[language].cta.description}</p>
+                <button className="cta-button">
+                  {content[language].cta.button}
+                </button>
+              </div>
+            </section> */}
           </main>
 
           <Footer language={language} />
