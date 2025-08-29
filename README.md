@@ -1,4 +1,4 @@
-```markdown
+````markdown
 # KaamKhoj - A Job Matching Platform for Blue-Collar Workers
 
 KaamKhoj is a comprehensive platform specifically designed to bridge the gap between blue-collar workers and potential employers. The application provides an intuitive, accessible interface available in multiple languages (Hindi and English) to ensure inclusivity for all users, particularly those from underserved communities with limited digital literacy and language barriers.
@@ -24,6 +24,7 @@ KaamKhoj addresses these challenges by providing:
 ## 🛠️ Tech Stack
 
 ### Frontend
+
 - **React**: UI library for building the user interface
 - **Vite**: Build tool and development server
 - **React Router**: For navigation and protected routes
@@ -33,6 +34,7 @@ KaamKhoj addresses these challenges by providing:
 - **LocalStorage**: For persisting user preferences (language)
 
 ### Backend
+
 - **Express.js**: Web application framework for Node.js
 - **MongoDB**: NoSQL database for storing user and job information
 - **Mongoose**: ODM library for MongoDB
@@ -42,6 +44,7 @@ KaamKhoj addresses these challenges by providing:
 ## 🌟 Key Features
 
 ### For Blue-Collar Workers
+
 - **Bilingual Interface**: Complete application available in Hindi and English with simple terminology
 - **Voice Registration**: Register by simply speaking to the AI assistant, no typing required
 - **Trade-Specific Profiles**: Create profiles highlighting specific trade skills (plumbing, electrical work, carpentry, etc.)
@@ -51,6 +54,7 @@ KaamKhoj addresses these challenges by providing:
 - **SMS Notifications**: Job alerts via SMS for workers without constant internet access
 
 ### For Employers
+
 - **Skilled Worker Discovery**: Find verified blue-collar workers with specific trade skills
 - **Local Talent Pool**: Access workers in specific localities and neighborhoods
 - **Skill Verification**: View verified skills and past work experience
@@ -69,54 +73,30 @@ KaamKhoj addresses these challenges by providing:
 6. **Seasonal Employers**: Farms, event venues, and seasonal businesses can find temporary workers during peak periods
 7. **Migrant Workers**: Blue-collar workers who have relocated can quickly find employment in new cities
 
-## 📂 Project Structure
-
-```
-KaamKhoj/
-├── backend/                # Server-side code
-│   ├── Config/             # Configuration files
-│   ├── models/             # MongoDB schemas
-│   │   ├── job.js          # Job listing model
-│   │   └── user.js         # User profile model
-│   ├── addressHelper.js    # Helper for address parsing
-│   ├── app.js              # Express application
-│   └── populateJobs.js     # Script to populate job listings
-├── frontend/               # Client-side code
-│   ├── public/             # Static files
-│   └── src/                # React components and logic
-│       ├── components/     # Reusable UI components
-│       ├── context/        # React context providers
-│       ├── data/           # Static data and translations
-│       ├── hooks/          # Custom React hooks
-│       ├── pages/          # Page components
-│       │   ├── AiAssistantPage.jsx  # Voice-assisted registration
-│       │   ├── JobsPage.jsx         # Job listings and search
-│       │   ├── LandingPage.jsx      # Homepage
-│       │   ├── LoginPage.jsx        # User login
-│       │   └── SignupPage.jsx       # User registration
-│       ├── App.jsx         # Main application component
-│       └── main.jsx        # Application entry point
-```
-
 ## 🚀 Setup and Installation
 
 ### Prerequisites
+
 - Node.js (v14 or higher)
 - MongoDB (v4.4 or higher)
 - npm or yarn package manager
 
 ### Backend Setup
+
 1. Navigate to the backend directory:
    ```bash
    cd backend
    ```
+````
 
 2. Install dependencies:
+
    ```bash
    npm install
    ```
 
 3. Create a `.env` file in the backend directory with the following variables:
+
    ```
    PORT=3000
    MONGODB_URI=mongodb://localhost:27017/kaamkhoj
@@ -128,17 +108,21 @@ KaamKhoj/
    ```
 
 ### Frontend Setup
+
 1. Navigate to the frontend directory:
+
    ```bash
    cd frontend
    ```
 
 2. Install dependencies:
+
    ```bash
    npm install
    ```
 
 3. Start the development server:
+
    ```bash
    npm run dev
    ```
@@ -156,22 +140,26 @@ KaamKhoj/
 ## 🧩 Modules
 
 ### Authentication Module
+
 - Handles user registration and login
 - Manages user sessions and authentication state
 - Provides protected routes for authenticated users
 
 ### Profile Management Module
+
 - Allows users to create and update their profiles
 - Stores user information in the MongoDB database
 - Provides validation for user inputs
 
 ### AI Assistant Module
+
 - Processes voice input from blue-collar workers who may prefer speaking over typing
 - Understands various dialects and accents in Hindi and English
 - Extracts relevant trade skills and work experience information using natural language processing
 - Guides workers through the registration process using simple, conversational UI with minimal text
 
 ### Job Matching Module
+
 - Lists available jobs based on trade skills and geographic proximity
 - Categorizes jobs by trade type (electrical, plumbing, carpentry, etc.)
 - Implements visual filtering with icons representing different trades
@@ -179,6 +167,7 @@ KaamKhoj/
 - Shows distance from worker's location and transportation options
 
 ### Language Module
+
 - Handles translation between Hindi and English
 - Persists language preferences
 - Ensures consistent language experience across the application
@@ -206,9 +195,11 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-
 ## 🙏 Acknowledgements
 
 - Special thanks to all contributors and testers
 - Inspired by the need to create more inclusive digital platforms for underserved communities
+
+```
+
 ```
