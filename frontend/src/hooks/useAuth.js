@@ -15,34 +15,32 @@ export const useAuth = () => {
     setError(null);
     
     try {
-      // Here you would make the actual API call to your backend
-      // Replace this with your API endpoint
-      // const response = await fetch('/api/login', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify(credentials),
-      // });
+      // Make actual API call to backend
+      const response = await fetch('http://localhost:5000/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(credentials),
+      });
       
-      // const data = await response.json();
+      const data = await response.json();
       
-      // if (!response.ok) {
-      //   throw new Error(data.message || 'Login failed');
-      // }
+      if (!response.ok) {
+        throw new Error(data.message || 'Login failed');
+      }
       
-      // Simulate successful login for now
       console.log('Login successful with:', credentials);
       
-      // Store user data
-      const userData = { username: credentials.username };
+      // Store user data from response
+      const userData = data.user;
       
       // Update context
       setCurrentUser(userData);
       setIsAuthenticated(true);
       
-      // Store the token in localStorage or session storage
-      // localStorage.setItem('token', data.token);
+      // Store the token and user data in localStorage
+      localStorage.setItem('token', data.token);
       localStorage.setItem('isLoggedIn', true);
       localStorage.setItem('user', JSON.stringify(userData));
       
@@ -66,23 +64,21 @@ export const useAuth = () => {
     setError(null);
     
     try {
-      // Here you would make the actual API call to your backend
-      // Replace this with your API endpoint
-      // const response = await fetch('/api/register', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify(userData),
-      // });
+      // Make actual API call to backend
+      const response = await fetch('http://localhost:5000/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userData),
+      });
       
-      // const data = await response.json();
+      const data = await response.json();
       
-      // if (!response.ok) {
-      //   throw new Error(data.message || 'Registration failed');
-      // }
+      if (!response.ok) {
+        throw new Error(data.message || 'Registration failed');
+      }
       
-      // Simulate successful registration for now
       console.log('Registration successful with:', userData);
       
       // Redirect to login page after successful registration
@@ -114,12 +110,51 @@ export const useAuth = () => {
     navigate('/login');
   };
 
+  // Link user profile with auth user
+  const linkUserProfile = async (profileId) => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Authentication token not found');
+      }
+      
+      const response = await fetch('http://localhost:5000/api/auth/link-profile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ profileId }),
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to link profile');
+      }
+      
+      // Update user in context and localStorage
+      setCurrentUser(data.user);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      
+      return true;
+    } catch (err) {
+      setError(err.message || 'Failed to link profile');
+      setIsLoading(false);
+      return false;
+    }
+  };
+
   return {
     isLoading,
     error,
     login,
     register,
     logout,
+    linkUserProfile,
     setError
   };
 };

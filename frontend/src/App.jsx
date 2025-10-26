@@ -6,6 +6,9 @@ import LandingPage from "./pages/LandingPage";
 import AiAssistantPage from "./pages/AiAssistantPage";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
+import ProfilePage from "./pages/ProfilePage";
+import DashboardPage from "./pages/DashboardPage";
+import JobsPage from "./pages/JobsPage";
 
 const App = () => {
   return (
@@ -23,6 +26,23 @@ const App = () => {
         /> */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
+        <Route path="/jobs" element={<JobsPage />} />
+        <Route 
+          path="/profile" 
+          element={
+            <ProtectedRoute>
+              <ProfilePage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/dashboard" 
+          element={
+            <ProtectedRoute>
+              <DashboardPage />
+            </ProtectedRoute>
+          } 
+        />
       </Routes>
     </AuthProvider>
   );

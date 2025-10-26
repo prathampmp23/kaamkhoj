@@ -1,0 +1,123 @@
+.voice-assistant-container {
+  background-color: #f8f9fa;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+  transition: all 0.3s ease;
+}
+
+.voice-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.voice-button {
+  background-color: #4a6bff;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 50px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.voice-button:hover {
+  background-color: #3a54cc;
+  transform: translateY(-2px);
+}
+
+.voice-button.listening {
+  background-color: #ff4a4a;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 74, 74, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(255, 74, 74, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 74, 74, 0);
+  }
+}
+
+.language-selector select {
+  padding: 8px 12px;
+  border-radius: 4px;
+  border: 1px solid #ced4da;
+  background-color: white;
+  font-size: 14px;
+}
+
+.transcript-container {
+  background-color: white;
+  padding: 15px;
+  border-radius: 8px;
+  border-left: 4px solid #4a6bff;
+  margin-bottom: 15px;
+}
+
+.transcript-container h3 {
+  margin-top: 0;
+  color: #333;
+  font-size: 16px;
+}
+
+.transcript-text {
+  font-size: 18px;
+  line-height: 1.5;
+  color: #333;
+}
+
+.status-message {
+  font-size: 14px;
+  color: #6c757d;
+  margin-top: 10px;
+  font-style: italic;
+}
+
+.extracted-data-container {
+  background-color: #e8f4fe;
+  padding: 15px;
+  border-radius: 8px;
+  border-left: 4px solid #17a2b8;
+}
+
+.extracted-data-container h3 {
+  margin-top: 0;
+  color: #17a2b8;
+  font-size: 16px;
+}
+
+.extracted-value {
+  font-size: 16px;
+  line-height: 1.5;
+  margin: 8px 0;
+}
+
+@media (max-width: 576px) {
+  .voice-controls {
+    flex-direction: column;
+    gap: 10px;
+    align-items: stretch;
+  }
+  
+  .language-selector {
+    width: 100%;
+    margin-top: 10px;
+  }
+  
+  .language-selector select {
+    width: 100%;
+  }
+}

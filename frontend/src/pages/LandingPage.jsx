@@ -145,6 +145,7 @@ const LandingPage = () => {
         <>
           <NavigationBar
             language={language}
+            // textColor={black}
             onLanguageChange={handleLanguageChange}
           />
 

@@ -5,7 +5,7 @@
   left: 0;
   width: 100%;
   z-index: 1000;
-  padding: 20px 0;
+  padding: 10px 0;
   transition: all 0.3s ease;
   background-color: transparent;
 }
@@ -14,7 +14,7 @@
   background-color: rgba(253, 253, 253, 0.264);
   backdrop-filter: blur(20px);
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  padding: 10px 0;
+  padding: 5px 0;
 }
 
 .navbar-content {
@@ -159,6 +159,7 @@
   display: flex;
   align-items: center;
   margin-left: 30px;
+  gap: 10px;
 }
 
 .login-btn {
@@ -166,18 +167,20 @@
   color: white;
   border: 1px solid white;
   padding: 8px 20px;
-  border-radius: 5px;
-  margin-right: 15px;
-  font-size: 0.9rem;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  font-weight: 500;
   text-decoration: none;
   transition: all 0.3s;
   display: flex;
   align-items: center;
   justify-content: center;
+  min-width: 100px;
+  text-align: center;
 }
 
 .login-btn:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.15);
 }
 
 .signup-btn {
@@ -185,19 +188,21 @@
   color: #0057b8;
   border: 1px solid white;
   padding: 8px 20px;
-  border-radius: 5px;
-  font-size: 0.9rem;
+  border-radius: 4px;
+  font-size: 0.95rem;
   font-weight: 500;
   text-decoration: none;
   transition: all 0.3s;
   display: flex;
   align-items: center;
   justify-content: center;
+  min-width: 100px;
+  text-align: center;
 }
 
 .signup-btn:hover {
   background-color: rgba(255, 255, 255, 0.9);
-  color: black;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .scrolled .login-btn {
@@ -206,7 +211,7 @@
 }
 
 .scrolled .login-btn:hover {
-  background-color: rgba(0, 87, 184, 0.05);
+  background-color: rgba(0, 87, 184, 0.08);
 }
 
 .scrolled .signup-btn {
@@ -293,20 +298,20 @@
   .auth-buttons {
     margin-left: 0;
     margin-top: 20px;
+    width: 100%;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+  }
+  
+  .login-btn, .signup-btn {
+    margin: 0;
     width: 40%;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-  }  .login-btn, .signup-btn {
-    margin-right: 0;
-    margin-bottom: 15px;
-    width: 80%;
-    max-width: 250px;
+    max-width: 150px;
     text-align: center;
-    padding: 12px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    padding: 10px;
+    font-size: 0.95rem;
   }
   
   /* Mobile language dropdown */
@@ -387,7 +392,93 @@
   }
   
   .navbar-menu {
-    width: 90%;
+    /* width: 90%; */
     padding: 70px 20px 20px 20px;
   }
+  
+  .auth-buttons {
+    flex-direction: row;
+    width: 100%;
+  }
+  
+  .login-btn, .signup-btn {
+    width: 45%;
+    font-size: 0.9rem;
+    padding: 8px 5px;
+  }
+}
+
+@media (max-width: 400px) {
+  .auth-buttons {
+    flex-direction: column;
+  }
+  
+  .login-btn, .signup-btn {
+    width: 80%;
+    margin-bottom: 8px;
+  }
+}
+
+/* Profile Dropdown Styles */
+.profile-dropdown-container {
+  position: relative;
+}
+
+.profile-toggle {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.profile-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  transform: translateY(-10px);
+  background-color: white;
+  border-radius: 5px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  padding: 8px;
+  min-width: 160px;
+  display: none;
+  flex-direction: column;
+  z-index: 100;
+  opacity: 0;
+  transition: opacity 0.3s, transform 0.3s;
+}
+
+.profile-dropdown.show {
+  display: flex;
+  opacity: 1;
+  transform: translateY(8px);
+}
+
+.dropdown-item {
+  background: none;
+  border: none;
+  padding: 10px 15px;
+  text-align: left;
+  font-size: 0.9rem;
+  color: #333;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  width: 100%;
+}
+
+.dropdown-item:hover {
+  background-color: #f0f7ff;
+}
+
+.dropdown-item i {
+  margin-right: 8px;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.mr-2 {
+  margin-right: 8px;
 }

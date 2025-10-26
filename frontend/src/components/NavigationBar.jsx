@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { Dropdown, NavDropdown } from "react-bootstrap";
 import "./NavigationBar.css";
+import { useAuthContext } from "../context/AuthContext";
 
-const NavigationBar = ({ language = "hi", onLanguageChange }) => {
+const NavigationBar = ({ language = "hi", onLanguageChange}) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const { isAuthenticated, setIsAuthenticated, setCurrentUser } = useAuthContext();
+  const navigate = useNavigate();
 
   // Translation content
   const content = {
@@ -15,6 +20,9 @@ const NavigationBar = ({ language = "hi", onLanguageChange }) => {
       jobs: "नौकरियां",
       assistant: "AI सहायक",
       profile: "प्रोफाइल",
+      user: "उपयोगकर्ता",
+      dashboard: "डैशबोर्ड",
+      logout: "लॉगआउट",
       login: "लॉग इन",
       signup: "साइन अप",
       language: "भाषा",
@@ -27,6 +35,9 @@ const NavigationBar = ({ language = "hi", onLanguageChange }) => {
       jobs: "Jobs",
       assistant: "AI Assistant",
       profile: "Profile",
+      user: "User",
+      dashboard: "Dashboard",
+      logout: "Logout",
       login: "Login",
       signup: "Sign Up",
       language: "Language",
@@ -77,13 +88,36 @@ const NavigationBar = ({ language = "hi", onLanguageChange }) => {
   useEffect(() => {
     const handleClickOutside = () => {
       if (langDropdownOpen) setLangDropdownOpen(false);
+      if (profileDropdownOpen) setProfileDropdownOpen(false);
     };
 
     document.addEventListener("click", handleClickOutside);
     return () => {
       document.removeEventListener("click", handleClickOutside);
     };
-  }, [langDropdownOpen]);
+  }, [langDropdownOpen, profileDropdownOpen]);
+  
+  // Handle logout
+  const handleLogout = () => {
+    // Remove user data and token from localStorage
+    localStorage.removeItem('token');
+    localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('user');
+    
+    // Update context
+    setCurrentUser(null);
+    setIsAuthenticated(false);
+    
+    // Navigate to home page
+    navigate('/');
+  };
+  
+  // Toggle profile dropdown
+  const toggleProfileDropdown = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setProfileDropdownOpen(!profileDropdownOpen);
+  };
 
   return (
     <nav className={`navbar ${scrolled ? "scrolled" : ""}`}>
@@ -118,11 +152,6 @@ const NavigationBar = ({ language = "hi", onLanguageChange }) => {
               <li>
                 <Link to="/assistant" className="nav-link">
                   {content[language].assistant}
-                </Link>
-              </li>
-              <li>
-                <Link to="/profile" className="nav-link">
-                  {content[language].profile}
                 </Link>
               </li>
               <li className="language-dropdown-container">
@@ -164,12 +193,51 @@ const NavigationBar = ({ language = "hi", onLanguageChange }) => {
             </ul>
 
             <div className="auth-buttons">
-              <Link to="/login" className="login-btn">
-                {content[language].login}
-              </Link>
-              <Link to="/signup" className="signup-btn">
-                {content[language].signup}
-              </Link>
+              {isAuthenticated ? (
+                // Show profile dropdown when logged in
+                <div className="profile-dropdown-container">
+                  <button
+                    className="signup-btn profile-toggle"
+                    onClick={toggleProfileDropdown}
+                    aria-label="Profile options"
+                  >
+                    {content[language].user}{" "}
+                    <i
+                      className={`fas fa-chevron-${
+                        profileDropdownOpen ? "up" : "down"
+                      } ml-1`}
+                    ></i>
+                  </button>
+                  <div
+                    className={`profile-dropdown ${
+                      profileDropdownOpen ? "show" : ""
+                    }`}
+                  >
+                    <Link to="/profile" className="dropdown-item">
+                       {content[language].profile}
+                    </Link>
+                    <Link to="/dashboard" className="dropdown-item">
+                       {content[language].dashboard}
+                    </Link>
+                    <button
+                      className="dropdown-item"
+                      onClick={handleLogout}
+                    >
+                      <i className="fas fa-sign-out-alt mr-2"></i> {content[language].logout}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                // Show login and signup buttons when not logged in
+                <>
+                  <Link to="/login" className="login-btn">
+                    {content[language].login}
+                  </Link>
+                  <Link to="/signup" className="signup-btn">
+                    {content[language].signup}
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>

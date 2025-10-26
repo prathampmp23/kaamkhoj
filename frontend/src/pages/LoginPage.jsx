@@ -236,7 +236,7 @@ export default function LoginPage() {
             </button>
           </form>
           
-          <div className="login-divider">
+          {/* <div className="login-divider">
             <span className="login-divider-text">{content[language].orLoginWith}</span>
           </div>
           
@@ -244,13 +244,7 @@ export default function LoginPage() {
             <button className="social-button" type="button">
               <i className="fab fa-google"></i>
             </button>
-            {/* <button className="social-button" type="button">
-              <i className="fab fa-facebook-f"></i>
-            </button> */}
-            <button className="social-button" type="button">
-              <i className="fab fa-linkedin-in"></i>
-            </button>
-          </div>
+          </div> */}
           
           <div className="signup-link-container">
             <span className="signup-text">
