@@ -21,7 +21,7 @@ const LandingPage = () => {
     // Simulate loading time for components
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 1000);
+    }, 500);
 
     return () => clearTimeout(timer);
   }, []);
@@ -37,15 +37,16 @@ const LandingPage = () => {
       brandName: "कामखोज",
       brandTagline: "रोज़गार का नया रास्ता",
       quickActions: {
-        findJob: {
-          title: "नौकरी खोजें",
-          description: "अपने क्षेत्र में उपलब्ध नौकरियां देखें",
-          button: "देखें",
-        },
+        title: "त्वरित लिंक",
         voiceForm: {
           title: "आवाज से फॉर्म भरें",
           description: "बोलकर अपना विवरण जमा करें",
           button: "शुरू करें",
+        },
+        findJob: {
+          title: "नौकरी खोजें",
+          description: "अपने क्षेत्र में उपलब्ध नौकरियां देखें",
+          button: "देखें",
         },
         contact: {
           title: "संपर्क करें",
@@ -86,6 +87,7 @@ const LandingPage = () => {
       brandName: "KaamKhoj",
       brandTagline: "A New Path to Employment",
       quickActions: {
+        title: "Quick Links",
         findJob: {
           title: "Find Jobs",
           description: "View available jobs in your area",
@@ -100,7 +102,7 @@ const LandingPage = () => {
           title: "Contact Us",
           description: "Talk to us for help",
           button: "Call",
-        },
+        }, 
       },
       features: {
         title: "Benefits of KaamKhoj",
@@ -145,49 +147,11 @@ const LandingPage = () => {
         <>
           <NavigationBar
             language={language}
-            // textColor={black}
             onLanguageChange={handleLanguageChange}
           />
 
           <main>
             <HeroSection language={language} />
-
-            {/* <section className="quick-actions">
-              <div className="container">
-                <div className="action-card">
-                  <div className="action-icon">
-                    <i className="fas fa-search-location"></i>
-                  </div>
-                  <h3>{content[language].quickActions.findJob.title}</h3>
-                  <p>{content[language].quickActions.findJob.description}</p>
-                  <button className="action-btn">
-                    {content[language].quickActions.findJob.button}
-                  </button>
-                </div>
-
-                <div className="action-card highlight">
-                  <div className="action-icon">
-                    <i className="fas fa-microphone"></i>
-                  </div>
-                  <h3>{content[language].quickActions.voiceForm.title}</h3>
-                  <p>{content[language].quickActions.voiceForm.description}</p>
-                  <button className="action-btn">
-                    {content[language].quickActions.voiceForm.button}
-                  </button>
-                </div>
-
-                <div className="action-card">
-                  <div className="action-icon">
-                    <i className="fas fa-phone-alt"></i>
-                  </div>
-                  <h3>{content[language].quickActions.contact.title}</h3>
-                  <p>{content[language].quickActions.contact.description}</p>
-                  <button className="action-btn">
-                    {content[language].quickActions.contact.button}
-                  </button>
-                </div>
-              </div>
-            </section> */}
 
             <section className="features-section">
               <div className="container">
@@ -209,10 +173,54 @@ const LandingPage = () => {
                           }`}
                         ></i>
                       </div>
-                      <h3>{feature.title}</h3>
-                      <p>{feature.description}</p>
+                      <div className="">
+                        <h3>{feature.title}</h3>
+                      </div>
+                      <div className="">
+                        <p>{feature.description}</p>
+                      </div>
                     </div>
                   ))}
+                </div>
+              </div>
+            </section>
+
+            <section className="quick-actions">
+              <h2 className="quick-action-title">
+                {content[language].quickActions.title}
+              </h2>
+              <div className="container">
+                <div className="action-card ">
+                  <div className="action-icon">
+                    <i className="fas fa-microphone"></i>
+                  </div>
+                  <h3>{content[language].quickActions.voiceForm.title}</h3>
+                  <p>{content[language].quickActions.voiceForm.description}</p>
+                  <button className="action-btn">
+                    {content[language].quickActions.voiceForm.button}
+                  </button>
+                </div>
+
+                <div className="action-card highlight">
+                  <div className="action-icon">
+                    <i className="fas fa-search-location"></i>
+                  </div>
+                  <h3>{content[language].quickActions.findJob.title}</h3>
+                  <p>{content[language].quickActions.findJob.description}</p>
+                  <button className="action-btn">
+                    {content[language].quickActions.findJob.button}
+                  </button>
+                </div>
+
+                <div className="action-card">
+                  <div className="action-icon">
+                    <i className="fas fa-phone-alt"></i>
+                  </div>
+                  <h3>{content[language].quickActions.contact.title}</h3>
+                  <p>{content[language].quickActions.contact.description}</p>
+                  <button className="action-btn">
+                    {content[language].quickActions.contact.button}
+                  </button>
                 </div>
               </div>
             </section>
@@ -224,41 +232,6 @@ const LandingPage = () => {
               showCount={4}
               language={language}
             />
-
-            <section className="ai-integration">
-              <div className="container">
-                <h2>
-                  {language === "hi"
-                    ? "बेहतर अनुभव के लिए"
-                    : "For Better Experience"}
-                </h2>
-                <p>
-                  {language === "hi"
-                    ? "पूरी फंक्शनैलिटी के लिए AI असिस्टेंट पेज पर जाएं। वहां आप अपना प्रोफ़ाइल बना सकते हैं और अपने लिए नौकरियां खोज सकते हैं।"
-                    : "Visit the AI Assistant page for full functionality. There you can create your profile and find jobs that match your skills."}
-                </p>
-                <Link
-                  to={`/assistant?lang=${language}`}
-                  className="ai-page-link"
-                >
-                  <button className="ai-page-btn">
-                    {language === "hi"
-                      ? "AI असिस्टेंट पेज पर जाएं"
-                      : "Go to AI Assistant Page"}
-                  </button>
-                </Link>
-              </div>
-            </section>
-
-            {/* <section className="cta-section">
-              <div className="container">
-                <h2>{content[language].cta.title}</h2>
-                <p>{content[language].cta.description}</p>
-                <button className="cta-button">
-                  {content[language].cta.button}
-                </button>
-              </div>
-            </section> */}
           </main>
 
           <Footer language={language} />

@@ -52,7 +52,7 @@
 }
 
 .card-header {
-  background-color: #0057b8;
+  background-color: #2552fe;
   color: #fff;
   padding: 1rem;
   display: flex;
@@ -67,7 +67,7 @@
 
 .badge {
   background-color: #fff;
-  color: #0057b8;
+  color: #2552fe;
   border-radius: 50%;
   width: 24px;
   height: 24px;
@@ -98,7 +98,7 @@
 }
 
 .action-button.primary {
-  background-color: #0057b8;
+  background-color: #2552fe;
   color: white;
 }
 

@@ -27,13 +27,13 @@
 .navbar-brand {
   font-size: 1.8rem;
   font-weight: 700;
-  color: white;
+  color: black;
   text-decoration: none;
   transition: color 0.3s;
 }
 
 .scrolled .navbar-brand {
-  color: #0057b8;
+  color: #2552fe;
 }
 
 .navbar-menu {
@@ -52,7 +52,7 @@
 }
 
 .nav-link {
-  color: white;
+  color: black;
   text-decoration: none;
   padding: 10px 15px;
   font-size: 1rem;
@@ -71,7 +71,7 @@
 }
 
 .scrolled .nav-link:hover {
-  color: #0057b8;
+  color: #2552fe;
 }
 
 /* Language Dropdown */
@@ -143,7 +143,7 @@
 }
 
 .language-option.active {
-  background-color: #0057b8;
+  background-color: #2552fe;
   color: white;
   position: relative;
 }
@@ -185,7 +185,7 @@
 
 .signup-btn {
   background-color: white;
-  color: #0057b8;
+  color: #2552fe;
   border: 1px solid white;
   padding: 8px 20px;
   border-radius: 4px;
@@ -206,8 +206,8 @@
 }
 
 .scrolled .login-btn {
-  border-color: #0057b8;
-  color: #0057b8;
+  border-color: #2552fe;
+  color: #2552fe;
 }
 
 .scrolled .login-btn:hover {
@@ -215,8 +215,8 @@
 }
 
 .scrolled .signup-btn {
-  background-color: #0057b8;
-  border-color: #0057b8;
+  background-color: #2552fe;
+  border-color: #2552fe;
   color: white;
 }
 
@@ -248,7 +248,7 @@
 }
 
 .scrolled .menu-toggle span {
-  background-color: #0057b8;
+  background-color: #2552fe;
 }
 
   /* Mobile menu styles */
@@ -348,13 +348,13 @@
   }
   
   .login-btn {
-    border-color: #0057b8;
-    color: #0057b8;
+    border-color: #2552fe;
+    color: #2552fe;
   }
   
   .signup-btn {
-    background-color: #0057b8;
-    border-color: #0057b8;
+    background-color: #2552fe;
+    border-color: #2552fe;
     color: white;
   }
   

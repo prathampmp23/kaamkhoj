@@ -84,7 +84,7 @@
 }
 
 .job-apply-btn {
-  background-color: rgb(7, 236, 210);
+  background-color: #ffffff;
   color: rgb(0, 0, 0);
   border: none;
   border-radius: 5px;
@@ -94,11 +94,11 @@
   cursor: pointer;
   transition: background-color 0.3s;
   width: 100%;
+  box-shadow: 0px 0px 2px gray;
 }
 
 .job-apply-btn:hover {
-  background-color: rgb(3, 181, 161);
-  color: white;
+  background-color: rgb(232, 232, 232);
 }
 
 .view-all-container {

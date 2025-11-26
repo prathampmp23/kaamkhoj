@@ -236,7 +236,7 @@ const JobsPage = () => {
             hi: "कॉर्पोरेट गार्डन के रखरखाव के लिए माली की आवश्यकता है",
           },
           company: {
-            en: "GreenSpace Inc",
+            en: "WhiteSpace Inc",
             hi: "ग्रीनस्पेस इंक",
           },
           location: {

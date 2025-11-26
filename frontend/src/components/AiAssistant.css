@@ -1,7 +1,6 @@
 /* AI Assistant Styles */
 .ai-assistant-preview {
   padding: 70px 0;
-  /* background-color: #f0f8ff; */
   position: relative;
   overflow: hidden;
 }
@@ -13,7 +12,7 @@
   right: -50px;
   width: 300px;
   height: 300px;
-  background-color: rgba(0, 87, 184, 0.05);
+  /* background-color: rgba(0, 87, 184, 0.05); */
   border-radius: 50%;
   z-index: 0;
 }
@@ -30,7 +29,7 @@
 }
 
 .ai-preview-text h2 {
-  color: #0057b8;
+  color: #2552fe;
   font-size: 2rem;
   margin-bottom: 20px;
   font-weight: 700;
@@ -44,7 +43,7 @@
 }
 
 .ai-start-btn {
-  background-color: #0057b8;
+  background-color: #2552fe;
   color: white;
   border: none;
   padding: 12px 25px;
@@ -87,7 +86,7 @@
 }
 
 .ai-chat-header {
-  background-color: #0057b8;
+  background-color: #2552fe;
   color: white;
   padding: 15px 20px;
   display: flex;
@@ -98,7 +97,7 @@
   width: 40px;
   height: 40px;
   background-color: white;
-  color: #0057b8;
+  color: #2552fe;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -135,7 +134,7 @@
 }
 
 .user-message {
-  background-color: #0057b8;
+  background-color: #2552fe;
   color: white;
   padding: 12px 15px;
   border-radius: 18px 18px 3px 18px;
@@ -157,7 +156,7 @@
 .mic-button {
   width: 45px;
   height: 45px;
-  background-color: #0057b8;
+  background-color: #2552fe;
   border-radius: 50%;
   display: flex;
   align-items: center;

@@ -5,7 +5,7 @@
   justify-content: center;
   align-items: center;
   min-height: calc(100vh - 200px); 
-  background: linear-gradient(rgb(1, 50, 147), rgba(255, 255, 255, 0.7));
+  background: linear-gradient(white, rgba(255, 255, 255, 0.7));
   padding-top: 180px;
 }
 
@@ -55,7 +55,7 @@
 .signup-title {
   font-size: 28px;
   font-weight: 700;
-  color: #0057b8;
+  color: #2552fe;
   margin-bottom: 10px;
 }
 
@@ -80,7 +80,7 @@
 }
 
 .form-control:focus {
-  border-color: #0057b8;
+  border-color: #2552fe;
   box-shadow: 0 0 0 3px rgba(0, 87, 184, 0.15);
 }
 
@@ -92,7 +92,7 @@
 }
 
 .btn-signup {
-  background-color: #0057b8;
+  background-color: #2552fe;
   border: none;
   width: 100%;
   height: 50px;
@@ -120,7 +120,7 @@
 }
 
 .login-link {
-  color: #0057b8;
+  color: #2552fe;
   text-decoration: none;
   font-weight: 600;
   transition: color 0.3s;
@@ -181,7 +181,7 @@
 }
 
 .terms-link {
-  color: #0057b8;
+  color: #2552fe;
   text-decoration: none;
   transition: color 0.3s;
 }

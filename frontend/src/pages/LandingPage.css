@@ -3,6 +3,7 @@
   font-family: "Noto Sans", "Noto Sans Devanagari", sans-serif;
   color: #333;
   overflow-x: hidden;
+  font-family: "Inter", sans-serif;
 }
 
 /* Removed standalone language selector as it's now in the navbar */
@@ -59,7 +60,7 @@
 
 .loader {
   border: 10px double rgba(0, 87, 184, 0.1);
-  border-top: 10px solid #0057b8;
+  border-top: 10px solid #2552fe;
   border-radius: 50%;
   width: 50px;
   height: 50px;
@@ -78,7 +79,7 @@
 
 .brand-name {
   font-size: 2.5rem;
-  color: #0057b8;
+  color: #2552fe;
   margin: 0;
   font-weight: 700;
 }
@@ -102,8 +103,7 @@ main {
 
 /* Quick Actions Section */
 .quick-actions {
-  background-color: #f5f9ff;
-  padding: 60px 0;
+  padding: 50px 0;
 }
 
 .quick-actions .container {
@@ -116,9 +116,8 @@ main {
 .action-card {
   background-color: white;
   border-radius: 10px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.085);
   padding: 25px;
-  text-align: center;
   flex: 1;
   min-width: 250px;
   max-width: 320px;
@@ -127,11 +126,20 @@ main {
 
 .action-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 10px 25px rgba(0, 87, 184, 0.1);
+  box-shadow: 10px 10px 25px rgba(0, 87, 184, 0.2);
+}
+
+.quick-action-title {
+  text-align: center;
+  color: rgb(35, 35, 35);
+  font-size: 2.5rem;
+  font-weight: bold;
+  position: relative;
+  margin-bottom: 25px;
 }
 
 .action-card.highlight {
-  background-color: #0057b8;
+  background-color: #2552fe;
   color: white;
 }
 
@@ -143,11 +151,11 @@ main {
   background-color: rgba(0, 87, 184, 0.1);
   width: 70px;
   height: 70px;
-  border-radius: 50%;
+  border-radius: 20%;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 15px;
+  margin-bottom: 20px;
 }
 
 .action-card.highlight .action-icon {
@@ -156,7 +164,7 @@ main {
 
 .action-icon i {
   font-size: 28px;
-  color: #0057b8;
+  color: #2552fe;
 }
 
 .action-card.highlight .action-icon i {
@@ -166,7 +174,7 @@ main {
 .action-card h3 {
   font-size: 1.3rem;
   margin-bottom: 10px;
-  color: #0057b8;
+  color: #2552fe;
 }
 
 .action-card p {
@@ -178,7 +186,7 @@ main {
 .action-btn {
   display: inline-block;
   padding: 10px 20px;
-  background-color: #0057b8;
+  background-color: #2552fe;
   color: white;
   border: none;
   border-radius: 5px;
@@ -190,7 +198,7 @@ main {
 
 .action-card.highlight .action-btn {
   background-color: white;
-  color: #0057b8;
+  color: #2552fe;
 }
 
 .action-btn:hover {
@@ -210,8 +218,11 @@ main {
 .section-title {
   text-align: center;
   color: rgb(35, 35, 35);
-  font-size: 2rem;
+  font-size: 2.5rem;
+  font-weight: bold;
   position: relative;
+  margin-bottom: 25px;
+  margin-top: 10px;
 }
 
 .section-title:after {
@@ -231,7 +242,7 @@ main {
 }
 
 .feature {
-  text-align: center;
+  /* text-align: center; */
   padding: 20px;
   border-radius: 10px;
   transition: transform 0.3s;
@@ -245,23 +256,26 @@ main {
 .feature-icon {
   width: 60px;
   height: 60px;
-  background-color: rgba(0, 87, 184, 0.1);
-  border-radius: 50%;
+  /* background-color: #f1f1f1; */
+  box-shadow: 0px 0px 2px grey;
+  border-radius: 20%;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 15px;
+  margin-bottom: 25px;
 }
 
 .feature-icon i {
   font-size: 24px;
-  color: black;
+  color: #1976ff;
+  /* margin-left: -20px; */
 }
 
 .feature h3 {
   color: black;
   margin-bottom: 10px;
   font-size: 1.2rem;
+  margin-bottom: 10px;
 }
 
 .feature p {

@@ -15,7 +15,7 @@ const Footer = ({ language = "hi" }) => {
   };
 
   return (
-    <footer className="bg-dark text-white text-center p-3">
+    <footer className="bg-white text-black text-center p-3">
       <Container>
         <p>&copy; {new Date().getFullYear()} {content[language].companyName}. {content[language].rights}.</p>
       </Container>
