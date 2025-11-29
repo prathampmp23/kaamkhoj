@@ -30,8 +30,11 @@ def synthesize_speech(text, output_file, language='en'):
             
             tts_lang = lang_map.get(language.lower(), 'en')
             
+            # Add slight pause at beginning to prevent cutoff
+            text_with_pause = " " + text
+            
             # Generate speech
-            tts = gTTS(text=text, lang=tts_lang, slow=False)
+            tts = gTTS(text=text_with_pause, lang=tts_lang, slow=False)
             
             # gTTS outputs MP3, but we'll save as mp3 and convert or just rename
             # For now, save as the requested format

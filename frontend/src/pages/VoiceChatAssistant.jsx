@@ -16,22 +16,19 @@ const VoiceChatAssistant = () => {
   const [retryCount, setRetryCount] = useState({});
   const [showHistory, setShowHistory] = useState(false);
   const [conversationHistory, setConversationHistory] = useState([]);
+  const [awaitingConfirmation, setAwaitingConfirmation] = useState(false);
+  const [pendingValue, setPendingValue] = useState(null);
+  const [pendingField, setPendingField] = useState(null);
 
   const currentAudioRef = useRef(null);
   const hasUserInteracted = useRef(false);
   const hasInitialized = useRef(false);
 
-  // Questions for each field
+  // Questions for each field (phone and age skipped for voice - will be collected via text input later)
   const questions = {
     name: language === 'hi-IN' 
       ? "आपका नाम क्या है?"
       : "What's your name?",
-    phone: language === 'hi-IN'
-      ? "आपका फोन नंबर क्या है?"
-      : "What's your phone number?",
-    age: language === 'hi-IN'
-      ? "आपकी उम्र क्या है?"
-      : "How old are you?",
     address: language === 'hi-IN'
       ? "आपका पता क्या है?"
       : "What's your address?",
@@ -92,19 +89,31 @@ const VoiceChatAssistant = () => {
       const audio = new Audio(audioUrl);
       currentAudioRef.current = audio;
 
-      audio.onended = () => {
-        URL.revokeObjectURL(audioUrl);
-        currentAudioRef.current = null;
-        setTimeout(() => setIsSpeaking(false), 100);
-      };
+      // Preload the audio to ensure it's ready
+      audio.load();
 
-      audio.onerror = () => {
-        URL.revokeObjectURL(audioUrl);
-        currentAudioRef.current = null;
-        setIsSpeaking(false);
-      };
+      // Wait for audio to finish playing
+      await new Promise((resolve, reject) => {
+        audio.onended = () => {
+          URL.revokeObjectURL(audioUrl);
+          currentAudioRef.current = null;
+          setIsSpeaking(false);
+          resolve();
+        };
 
-      await audio.play();
+        audio.onerror = () => {
+          URL.revokeObjectURL(audioUrl);
+          currentAudioRef.current = null;
+          setIsSpeaking(false);
+          reject(new Error("Audio playback failed"));
+        };
+
+        // Small delay to ensure audio is loaded before playing
+        setTimeout(() => {
+          audio.play().catch(reject);
+        }, 100);
+      });
+
     } catch (error) {
       console.error("TTS Error:", error);
       currentAudioRef.current = null;
@@ -124,7 +133,7 @@ const VoiceChatAssistant = () => {
         setStatusTitle(language === 'hi-IN' ? "सुन रहा हूं..." : "I'm listening...");
         setStatusMessage(currentQ);
         await speakText(currentQ);
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, 800)); // Wait before starting recording
       }
 
       setIsListening(true);
@@ -168,7 +177,82 @@ const VoiceChatAssistant = () => {
           // Add to history
           setConversationHistory(prev => [...prev, { sender: 'user', message: sttJson.text }]);
 
-          // Process with backend
+          // Check if we're waiting for confirmation
+          if (awaitingConfirmation) {
+            const confirmStatus = checkConfirmation(sttJson.text);
+            
+            if (confirmStatus === 'confirmed') {
+              // User confirmed - save the data and move to next field
+              setFormData(prev => ({
+                ...prev,
+                [pendingField]: pendingValue,
+              }));
+              
+              setAwaitingConfirmation(false);
+              setPendingValue(null);
+              setPendingField(null);
+              setRetryCount(prev => ({ ...prev, [currentQuestion]: 0 }));
+
+              const fields = Object.keys(questions);
+              const currentIndex = fields.indexOf(currentQuestion);
+              
+              const thankYouMsg = language === 'hi-IN' 
+                ? "धन्यवाद!"
+                : "Great!";
+              
+              setConversationHistory(prev => [...prev, { sender: 'assistant', message: thankYouMsg }]);
+
+              if (currentIndex < fields.length - 1) {
+                const nextField = fields[currentIndex + 1];
+                setCurrentQuestion(nextField);
+                const nextQ = questions[nextField];
+                setStatusTitle(nextQ);
+                setStatusMessage("");
+                
+                await speakText(thankYouMsg);
+                await new Promise(resolve => setTimeout(resolve, 800));
+                await speakText(nextQ);
+              } else {
+                const doneMsg = language === 'hi-IN'
+                  ? "बहुत बढ़िया! बेसिक जानकारी मिल गई है। फोन नंबर और उम्र बाद में टेक्स्ट फॉर्म में भर सकते हैं। धन्यवाद!"
+                  : "Perfect! I have the basic information. You can provide phone number and age later in the text form. Thank you!";
+                setStatusTitle(doneMsg);
+                setStatusMessage("");
+                await speakText(doneMsg);
+              }
+              return;
+              
+            } else if (confirmStatus === 'rejected') {
+              // User wants to change - ask again
+              const retryMsg = language === 'hi-IN'
+                ? `ठीक है, ${questions[currentQuestion]}`
+                : `Okay, ${questions[currentQuestion]}`;
+              
+              setAwaitingConfirmation(false);
+              setPendingValue(null);
+              setPendingField(null);
+              setStatusTitle(retryMsg);
+              setStatusMessage("");
+              setConversationHistory(prev => [...prev, { sender: 'assistant', message: retryMsg }]);
+              
+              await speakText(retryMsg);
+              return;
+              
+            } else {
+              // Unclear response - ask again
+              const clarifyMsg = language === 'hi-IN'
+                ? "कृपया 'हाँ' या 'नहीं' में जवाब दें। क्या यह सही है?"
+                : "Please say 'yes' or 'no'. Is this correct?";
+              
+              setStatusTitle(clarifyMsg);
+              setConversationHistory(prev => [...prev, { sender: 'assistant', message: clarifyMsg }]);
+              
+              await speakText(clarifyMsg);
+              return;
+            }
+          }
+
+          // Normal processing - extract information
           const processResp = await fetch("http://localhost:5000/process", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -182,46 +266,24 @@ const VoiceChatAssistant = () => {
 
           const processJson = await processResp.json();
 
-          // Update form data
-          if (processJson.extractedValue) {
-            setFormData(prev => ({
-              ...prev,
-              [currentQuestion]: processJson.extractedValue,
-            }));
-          }
-
           // Add response to history
           setConversationHistory(prev => [...prev, { sender: 'assistant', message: processJson.reply }]);
           
           setStatusTitle(processJson.reply);
 
-          // Move to next question or finish
-          if (processJson.success) {
-            setRetryCount(prev => ({ ...prev, [currentQuestion]: 0 }));
-
-            const fields = Object.keys(questions);
-            const currentIndex = fields.indexOf(currentQuestion);
-
-            if (currentIndex < fields.length - 1) {
-              const nextField = fields[currentIndex + 1];
-              setCurrentQuestion(nextField);
-              const nextQ = questions[nextField];
-              setStatusMessage(nextQ);
-              await speakText(processJson.reply);
-              await new Promise(resolve => setTimeout(resolve, 800));
-              speakText(nextQ);
-            } else {
-              // All done
-              const doneMsg = language === 'hi-IN'
-                ? "बहुत बढ़िया! सभी जानकारी मिल गई है। धन्यवाद!"
-                : "Perfect! I have all the information. Thank you!";
-              setStatusMessage(doneMsg);
-              speakText(doneMsg);
-            }
+          // If extraction was successful, ask for confirmation
+          if (processJson.success && processJson.extractedValue) {
+            setAwaitingConfirmation(true);
+            setPendingValue(processJson.extractedValue);
+            setPendingField(currentQuestion);
+            setStatusMessage(language === 'hi-IN' ? "कृपया 'हाँ' या 'नहीं' बोलें" : "Please say 'yes' or 'no'");
+            
+            await speakText(processJson.reply);
           } else {
+            // Extraction failed - ask again
             setRetryCount(prev => ({ ...prev, [currentQuestion]: (prev[currentQuestion] || 0) + 1 }));
             setStatusMessage(questions[currentQuestion]);
-            speakText(processJson.reply);
+            await speakText(processJson.reply);
           }
 
         } catch (error) {
@@ -265,6 +327,33 @@ const VoiceChatAssistant = () => {
     setLanguage(prev => prev === 'en-IN' ? 'hi-IN' : 'en-IN');
   };
 
+  // Check if user confirmed or rejected in natural language
+  const checkConfirmation = (text) => {
+    const lowerText = text.toLowerCase().trim();
+    
+    // English confirmations
+    const confirmEn = ['yes', 'yeah', 'yep', 'correct', 'right', 'ok', 'okay', 'fine', 'sure', 'good', 'perfect', 'exactly', 'absolutely', 'confirm'];
+    const rejectEn = ['no', 'nope', 'wrong', 'incorrect', 'not right', 'change', 'edit', 'fix', 'nah'];
+    
+    // Hindi confirmations
+    const confirmHi = ['हाँ', 'हां', 'जी', 'सही', 'ठीक', 'बिल्कुल', 'करेक्ट'];
+    const rejectHi = ['नहीं', 'नही', 'गलत', 'बदलो', 'चेंज'];
+    
+    // Check for confirmation
+    if (confirmEn.some(word => lowerText.includes(word)) || 
+        confirmHi.some(word => text.includes(word))) {
+      return 'confirmed';
+    }
+    
+    // Check for rejection
+    if (rejectEn.some(word => lowerText.includes(word)) || 
+        rejectHi.some(word => text.includes(word))) {
+      return 'rejected';
+    }
+    
+    return 'unclear';
+  };
+
   // Get orb class
   const getOrbClass = () => {
     if (isListening) return 'listening';
@@ -301,7 +390,7 @@ const VoiceChatAssistant = () => {
       <div className="voice-chat-container">
         <div className="voice-chat-header">
           <h1 className="voice-chat-title">
-            {language === 'hi-IN' ? 'AI नौकरी सहायक' : 'AI Job Assistant'}
+            {language === 'hi-IN' ? 'AI नौकरी सहायक' : ' AI Job Assistant'}
           </h1>
           <p className="voice-chat-subtitle">
             {language === 'hi-IN' ? 'आवाज़ से बातचीत करें' : 'Voice Conversation'}
@@ -309,7 +398,7 @@ const VoiceChatAssistant = () => {
         </div>
 
         <div className="voice-main-area">
-          {/* Animated Orb */}
+          {/* Animated Video Orb */}
           <div className="voice-orb-container">
             {(isListening || isSpeaking) && (
               <>
@@ -318,7 +407,14 @@ const VoiceChatAssistant = () => {
                 <div className="voice-pulse-ring"></div>
               </>
             )}
-            <div className={`voice-orb ${getOrbClass()}`}></div>
+            <video 
+              className={`voice-orb ${getOrbClass()}`}
+              src="/images/original-11187fd1dc85fe35d20bf7d80454474f.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
+            />
           </div>
 
           {/* Status */}
