@@ -3,6 +3,14 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 const app = express();
 
+// new imports
+const multer = require('multer');
+const { spawn } = require('child_process');
+const fs = require('fs');
+const path = require('path');
+
+const upload = multer({ dest: 'uploads/' }); // ensure uploads/ exists and is writable
+
 // Import models
 const User = require('./models/user');
 const Job = require('./models/job');
@@ -16,17 +24,15 @@ const OllamaService = require('./services/OllamaService');
 const LanguageDetectionService = require('./services/LanguageDetectionService');
 
 // Initialize services
-const ollamaService = new OllamaService('http://localhost:11434'); 
+const ollamaService = new OllamaService('http://localhost:11434');
 const languageDetectionService = new LanguageDetectionService();
 
 // Track if Ollama service is available
 let ollamaAvailable = false;
 
+
 // MongoDB connection
-mongoose.connect('mongodb://localhost:27017/kaamkhoj', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-}).then(() => {
+mongoose.connect('mongodb://localhost:27017/kaamkhoj').then(() => {
   console.log('Connected to MongoDB');
 }).catch((error) => {
   console.error('MongoDB connection error:', error);
@@ -45,37 +51,42 @@ app.use('/api/auth', authRoutes);
 function extractName(text) {
   console.log('Attempting to extract name from:', text);
   
+  // Clean up common transcription artifacts
+  let cleanedText = text.trim();
+  
   // Match patterns like "My name is John", "I am John", "John is my name", etc.
   const patterns = [
-    /my name is\s+([A-Za-z\s\.]+)(?:\s+and|\s+but|\s+or|$|\.|,)/i,
-    /i am\s+([A-Za-z\s\.]+)(?:\s+and|\s+but|\s+or|$|\.|,)/i,
-    /(?:call me|i'm|i'm called)\s+([A-Za-z\s\.]+)(?:\s+and|\s+but|\s+or|$|\.|,)/i,
-    /([A-Za-z\s\.]+)\s+(?:is my name)(?:\s+and|\s+but|\s+or|$|\.|,)/i,
-    /mera naam\s+([A-Za-z\s\.]+)(?:\s+hai|\s+h|\s+he|$|\.|,)/i,
-    /mera name\s+([A-Za-z\s\.]+)(?:\s+hai|\s+h|\s+he|$|\.|,)/i,
-    /naam\s+([A-Za-z\s\.]+)(?:\s+hai|\s+h|\s+he|$|\.|,)/i,
-    /(?:^|\s+)([A-Za-z\s\.]+)(?:\s+hai mera naam)/i,
-    /name[\s:]+([A-Za-z\s\.]+)(?:$|\.|,)/i,
-    /myself\s+([A-Za-z\s\.]+)(?:\s+and|\s+but|\s+or|$|\.|,)/i,
-    /this is\s+([A-Za-z\s\.]+)(?:\s+and|\s+but|\s+or|$|\.|,)/i,
-    /(?:^|my name)[\s:]+([A-Za-z\s\.]+)(?:$|\.|,)/i,
-    // Simplified pattern - just match first 2-3 words if they look like a name
-    /^([A-Za-z][A-Za-z\s\.]{1,29})(?:\s|$|\.|,)/i,
-    // Just name without context (when asked to just say your name)
-    /^([A-Za-z][A-Za-z\s\.]{1,29})$/i
+    /my name is\s+([A-Za-z][A-Za-z\s]+?)(?:\s*\.{3}|\s+and|\s+but|$|\.)/i,
+    /i am\s+([A-Za-z][A-Za-z\s]+?)(?:\s*\.{3}|\s+and|\s+but|$|\.)/i,
+    /(?:call me|i'm|im)\s+([A-Za-z][A-Za-z\s]+?)(?:\s*\.{3}|\s+and|\s+but|$|\.)/i,
+    /([A-Za-z][A-Za-z\s]+?)\s+(?:is my name)(?:\s*\.{3}|\s+and|$|\.)/i,
+    /mera naam\s+([A-Za-z][A-Za-z\s]+?)(?:\s+hai|\s*\.{3}|$|\.)/i,
+    /mera name\s+([A-Za-z][A-Za-z\s]+?)(?:\s+hai|\s*\.{3}|$|\.)/i,
+    /naam\s+([A-Za-z][A-Za-z\s]+?)(?:\s+hai|\s+h|\s*\.{3}|$|\.)/i,
+    /myself\s+([A-Za-z][A-Za-z\s]+?)(?:\s*\.{3}|\s+and|$|\.)/i,
+    /this is\s+([A-Za-z][A-Za-z\s]+?)(?:\s*\.{3}|\s+and|$|\.)/i,
+    // Just the name directly (most common for illiterate users)
+    /^([A-Za-z][A-Za-z\s]+?)(?:\s*\.{3}|\.|$)/i
   ];
 
   // Try to match with the standard patterns first
   for (const pattern of patterns) {
-    const match = text.match(pattern);
+    const match = cleanedText.match(pattern);
     if (match && match[1]) {
-      const potentialName = match[1].trim();
+      let potentialName = match[1].trim();
+      
+      // Remove trailing ellipsis or dots
+      potentialName = potentialName.replace(/\.{3,}$|\.+$/g, '').trim();
 
       // Basic validation - name should be at least 2 chars and not too long
-      if (potentialName.length >= 2 && potentialName.length <= 30) {
+      if (potentialName.length >= 2 && potentialName.length <= 50) {
         // Filter out common words that might be picked up incorrectly
-        const commonWords = ['yes', 'no', 'hello', 'hi', 'okay', 'sure', 'the', 'a', 'an', 'is', 'am', 'are'];
-        if (!commonWords.includes(potentialName.toLowerCase())) {
+        const commonWords = ['yes', 'no', 'hello', 'hi', 'okay', 'sure', 'the', 'a', 'an', 'is', 'am', 'are', 'so'];
+        const lowerName = potentialName.toLowerCase();
+        
+        // Check if it's not just a common word
+        if (!commonWords.includes(lowerName) && !lowerName.startsWith('so ')) {
+          console.log('Extracted name:', potentialName);
           return potentialName;
         }
       }
@@ -506,6 +517,122 @@ function extractAvailability(text) {
   }
 })();
 
+/**
+ * POST /stt
+ * Accepts multipart/form-data audio file (field name: "audio")
+ * Returns: { text: "...", lang: "en" }
+ *
+ * NOTE: This uses whisper.cpp CLI binary as an example.
+ * If you prefer VOSK or another STT engine, replace the spawn/CLI call with
+ * the appropriate invocation or HTTP call to the local STT server.
+ */
+app.post('/stt', upload.single('audio'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No audio file uploaded' });
+    }
+
+    const inputPath = path.resolve(req.file.path);
+    console.log('Received audio file:', inputPath);
+
+    // Path to Python whisper script
+    const transcribeScript = path.resolve(__dirname, 'transcribe.py');
+    const pythonCmd = path.resolve(__dirname, '.venv', 'Scripts', 'python.exe');
+
+    // Check if Python script exists
+    if (!fs.existsSync(transcribeScript)) {
+      try { fs.unlinkSync(inputPath); } catch(e) {}
+      return res.status(500).json({ error: 'Transcribe script not found' });
+    }
+
+    console.log('Running Whisper transcription...');
+
+    // Run Python Whisper script
+    // Use 'base' model for good balance of speed and accuracy
+    const args = [transcribeScript, '--file', inputPath, '--model', 'base'];
+    const proc = spawn(pythonCmd, args);
+
+    let outputData = '';
+    let errorData = '';
+
+    proc.stdout.on('data', (chunk) => {
+      outputData += chunk.toString();
+      console.log('Whisper stdout:', chunk.toString());
+    });
+
+    proc.stderr.on('data', (chunk) => {
+      errorData += chunk.toString();
+      console.error('Whisper stderr:', chunk.toString().trim());
+    });
+
+    proc.on('error', (err) => {
+      console.error('Failed to start Python process:', err);
+      try { fs.unlinkSync(inputPath); } catch(e) {}
+      return res.status(500).json({ error: 'Failed to start transcription process: ' + err.message });
+    });
+
+    proc.on('close', (code) => {
+      // Cleanup uploaded file
+      try { fs.unlinkSync(inputPath); } catch(e) {}
+
+      console.log('Whisper process exited with code:', code);
+      console.log('Output data:', outputData);
+      console.log('Error data:', errorData);
+
+      if (code !== 0) {
+        console.error('Whisper transcription failed with code', code);
+        console.error('Error output:', errorData);
+        return res.status(500).json({ error: 'STT transcription failed' });
+      }
+
+      try {
+        // Parse JSON output from Python script
+        // Extract only the JSON part (in case there's extra output)
+        let jsonString = outputData.trim();
+        
+        // Find the JSON object in the output
+        const jsonStart = jsonString.indexOf('{');
+        const jsonEnd = jsonString.lastIndexOf('}');
+        
+        if (jsonStart !== -1 && jsonEnd !== -1) {
+          jsonString = jsonString.substring(jsonStart, jsonEnd + 1);
+        }
+        
+        const result = JSON.parse(jsonString);
+
+        if (!result.success) {
+          return res.status(500).json({ error: result.error || 'Transcription failed' });
+        }
+
+        if (!result.text || result.text.trim() === '') {
+          return res.json({ text: '', lang: 'und' });
+        }
+
+        // Map Whisper language codes to our format
+        let lang = 'en';
+        if (result.language === 'hi' || result.language === 'hindi') {
+          lang = 'hi';
+        } else if (result.language === 'en' || result.language === 'english') {
+          lang = 'en';
+        }
+
+        console.log('Transcription successful:', result.text);
+        return res.json({ text: result.text, lang: lang });
+
+      } catch (parseError) {
+        console.error('Failed to parse Whisper output:', parseError);
+        console.error('Raw output:', outputData);
+        return res.status(500).json({ error: 'Failed to parse transcription result' });
+      }
+    });
+
+  } catch (err) {
+    console.error('STT error:', err);
+    return res.status(500).json({ error: err.message || 'STT failed' });
+  }
+});
+
+
 // Process speech input based on the current field
 app.post("/process", async (req, res) => {
   const { text, lang, currentField, retryCount } = req.body;
@@ -589,9 +716,9 @@ app.post("/process", async (req, res) => {
     switch (currentField) {
       case "name":
         if (success) {
-          reply = `Thank you, I've recorded your name as ${extractedValue}.`;
+          reply = `Got it! I've recorded your name as ${extractedValue}. Is this correct?`;
         } else {
-          reply = "I couldn't understand your name. Please say your name clearly.";
+          reply = "I couldn't understand your name. Please say your full name clearly, for example: Pratham Manish Potdar.";
         }
         break;
       case "gender":
@@ -610,9 +737,9 @@ app.post("/process", async (req, res) => {
         break;
       case "phone":
         if (success) {
-          reply = `Thank you, I've recorded your phone number as ${extractedValue}.`;
+          reply = `Got it! Your phone number is ${extractedValue}. Is this correct?`;
         } else {
-          reply = "I couldn't understand your phone number. Please say a valid 10-digit number.";
+          reply = "I couldn't understand your phone number. Please say the digits one by one, for example: 9 8 7 6 5 4 3 2 1 0.";
         }
         break;
       case "address":
@@ -660,9 +787,9 @@ app.post("/process", async (req, res) => {
     switch (currentField) {
       case "name":
         if (success) {
-          reply = `धन्यवाद, मैंने आपका नाम ${extractedValue} दर्ज कर लिया है।`;
+          reply = `ठीक है! मैंने आपका नाम ${extractedValue} दर्ज किया। क्या यह सही है?`;
         } else {
-          reply = "मुझे आपका नाम समझ नहीं आया। कृपया अपना नाम स्पष्ट रूप से बताएं।";
+          reply = "मुझे आपका नाम समझ नहीं आया। कृपया अपना पूरा नाम स्पष्ट रूप से बोलें।";
         }
         break;
       case "gender":
@@ -681,9 +808,9 @@ app.post("/process", async (req, res) => {
         break;
       case "phone":
         if (success) {
-          reply = `धन्यवाद, मैंने आपका फोन नंबर ${extractedValue} दर्ज कर लिया है।`;
+          reply = `ठीक है! आपका फोन नंबर ${extractedValue} है। क्या यह सही है?`;
         } else {
-          reply = "मुझे आपका फोन नंबर समझ नहीं आया। कृपया एक वैध 10-अंक का नंबर बताएं।";
+          reply = "मुझे आपका फोन नंबर समझ नहीं आया। कृपया अंक एक-एक करके बोलें, जैसे: ९ ८ ७ ६ ५ ४ ३ २ १ ०।";
         }
         break;
       case "address":
@@ -743,6 +870,67 @@ app.post("/process", async (req, res) => {
   
   res.json(responseObject);
 });
+
+/**
+ * POST /tts
+ * Body: { text: string, lang: 'en'|'hi' }
+ * Returns audio file URL or streams audio bytes directly.
+ *
+ * Example uses a Coqui TTS python script `synthesize.py` that takes arguments:
+ *   python synth.py --text "Hello" --out /tmp/out.wav --lang en
+ *
+ * You must implement `synthesize.py` using Coqui TTS (or use the TTS server)
+ */
+app.post('/tts', express.json(), async (req, res) => {
+  try {
+    const { text, lang } = req.body;
+    if (!text || text.trim() === '') {
+      return res.status(400).json({ error: 'No text to synthesize' });
+    }
+
+    const outFile = path.resolve(`uploads/tts_output_${Date.now()}.wav`);
+    const ttsScript = path.resolve(__dirname, 'synthesize.py');
+    const pythonCmd = path.resolve(__dirname, '.venv', 'Scripts', 'python.exe');
+
+    // Check if script exists
+    if (!fs.existsSync(ttsScript)) {
+      return res.status(500).json({ error: 'TTS script not found' });
+    }
+
+    console.log('Generating TTS for:', text.substring(0, 50) + '...');
+
+    // spawn coqui TTS script
+    const args = [ttsScript, '--text', text, '--out', outFile, '--lang', lang || 'en'];
+    const proc = spawn(pythonCmd, args);
+
+    proc.stdout.on('data', (d) => console.log('TTS stdout:', d.toString()));
+    proc.stderr.on('data', (d) => console.error('TTS stderr:', d.toString()));
+
+    proc.on('close', (code) => {
+      if (code !== 0) {
+        try { fs.unlinkSync(outFile); } catch(e){}
+        return res.status(500).json({ error: 'TTS process failed' });
+      }
+
+      // Check if file was created
+      if (!fs.existsSync(outFile)) {
+        return res.status(500).json({ error: 'TTS output file not created' });
+      }
+
+      // stream file back to client (and then delete)
+      res.setHeader('Content-Type', 'audio/wav');
+      const readStream = fs.createReadStream(outFile);
+      readStream.pipe(res);
+      readStream.on('close', () => {
+        try { fs.unlinkSync(outFile); } catch(e){}
+      });
+    });
+  } catch (err) {
+    console.error('TTS Error:', err);
+    return res.status(500).json({ error: err.message || 'TTS failed' });
+  }
+});
+
 
 // Add a new endpoint to save the user profile
 app.post("/saveProfile", async (req, res) => {

@@ -26,10 +26,9 @@ const Footer = ({ language = "hi" }) => {
         <div>
           <p>
             <b>Co-Founders </b>
-            <br />{" "}
-            <p className="text-primary">
-              Manthan, Pratham, Rishabh, Yachin, Aashish
-            </p>
+          </p>
+          <p className="text-primary">
+            Manthan, Pratham, Rishabh, Yachin, Aashish
           </p>
         </div>
       </Container>

@@ -64,24 +64,71 @@ KaamKhoj bridges this gap with an **inclusive, voice-first platform** that enabl
 ### Prerequisites
 - Node.js (v14+)  
 - MongoDB (v4.4+)  
+- **FFmpeg** (required for voice transcription)
+- Python 3.13+ with virtual environment
 
-### Backend
+### Installing FFmpeg
+FFmpeg is required for the Whisper speech-to-text functionality:
+
+**Windows:**
 ```bash
-cd backend
-npm install
-# Add .env file:
-PORT=3000
-MONGODB_URI=mongodb://localhost:27017/kaamkhoj
-node app.js
+# Using winget (recommended)
+winget install ffmpeg
+
+# Or download from: https://ffmpeg.org/download.html
+# Add to System PATH: C:\Program Files\ffmpeg\bin
 ```
 
-### Frontend
+**For Git Bash users:** After installing, add to current session:
+```bash
+export PATH="$PATH:/c/Program Files/ffmpeg/bin"
+```
+
+### Backend Setup
+```bash
+cd backend
+
+# Install Node.js dependencies
+npm install
+
+# Python virtual environment is already set up with required packages:
+# - openai-whisper (for speech-to-text)
+# - gTTS (for text-to-speech)
+# - pyttsx3 (offline TTS fallback)
+
+# Start the backend server (with FFmpeg in PATH)
+# On Windows CMD/PowerShell:
+start-backend.bat
+
+# On Git Bash/Linux:
+bash start-backend.sh
+
+# Or manually:
+export PATH="$PATH:/c/Program Files/ffmpeg/bin"
+nodemon ./app.js
+```
+
+### Frontend Setup
 ```bash
 cd frontend
 npm install
 npm run dev
 # Runs at http://localhost:5173
 ```
+
+### Environment Configuration
+Create `.env` file in backend directory:
+```
+PORT=5000
+MONGODB_URI=mongodb://localhost:27017/kaamkhoj
+```
+
+### Testing Voice Assistant
+1. Start MongoDB: `mongod`
+2. Start Ollama: Ensure Ollama is running with qwen2.5:7b model
+3. Start backend: `bash start-backend.sh` (includes FFmpeg in PATH)
+4. Start frontend: `npm run dev`
+5. Navigate to: `http://localhost:5173/assistant`
 
 ## 🔮 Future Enhancements
 

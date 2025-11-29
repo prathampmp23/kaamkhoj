@@ -96,12 +96,12 @@ function App() {
   const submitFormData = async (data) => {
     try {
       // Check if user is logged in and add their ID to the form data
-      const userData = localStorage.getItem('user');
+      const userData = localStorage.getItem("user");
       if (userData) {
         const user = JSON.parse(userData);
         data.authUserId = user.id;
       }
-      
+
       const response = await axios.post(
         "http://localhost:5000/saveProfile",
         data
@@ -234,29 +234,29 @@ function App() {
   // Function to initialize speech synthesis after user interaction
   const initializeVoiceSynthesis = () => {
     if (!window.speechSynthesis) return;
-    
+
     // Pre-load voices to avoid delays later
     window.speechSynthesis.getVoices();
-    
+
     // Speak a silent utterance to grant permission
-    const silentUtterance = new SpeechSynthesisUtterance('');
+    const silentUtterance = new SpeechSynthesisUtterance("");
     silentUtterance.volume = 0;
     window.speechSynthesis.speak(silentUtterance);
-    
+
     console.log("Voice synthesis initialized after user interaction");
-    
+
     // Remove the click event listener after initialization
-    document.removeEventListener('click', initializeVoiceSynthesis);
+    document.removeEventListener("click", initializeVoiceSynthesis);
   };
-  
+
   // Add click listener to initialize speech synthesis on first user interaction
   useEffect(() => {
-    document.addEventListener('click', initializeVoiceSynthesis);
+    document.addEventListener("click", initializeVoiceSynthesis);
     return () => {
-      document.removeEventListener('click', initializeVoiceSynthesis);
+      document.removeEventListener("click", initializeVoiceSynthesis);
     };
   }, []);
-  
+
   // Cleanup effect - stop speech synthesis and recognition when component unmounts
   useEffect(() => {
     return () => {
@@ -264,20 +264,26 @@ function App() {
       if (window.speechSynthesis) {
         window.speechSynthesis.cancel();
       }
-      
+
       // Cancel any ongoing recognition
       if (recognitionRef.current) {
         recognitionRef.current.abort();
       }
-      
-      console.log("AI Assistant component unmounted - voice services cleaned up");
+
+      console.log(
+        "AI Assistant component unmounted - voice services cleaned up"
+      );
     };
   }, []);
-  
+
   // Start the conversation when component mounts
   useEffect(() => {
     // Only proceed if we haven't initialized yet and we're on the assistant page
-    if (hasInitialized.current || !window.location.pathname.includes('/assistant')) return;
+    if (
+      hasInitialized.current ||
+      !window.location.pathname.includes("/assistant")
+    )
+      return;
 
     // Initialize speech synthesis
     const initConversation = () => {
@@ -293,167 +299,112 @@ function App() {
 
         // Then add the initial question
         const initialQuestion = questions[currentQuestion];
-        console.log("Speaking initial question:", initialQuestion);
+        console.log("Initial question added:", initialQuestion);
         addToConversation("assistant", initialQuestion);
-        
-        // Automatically speak the initial question
-        // We'll use a silent utterance first to get permission
-        const silentUtterance = new SpeechSynthesisUtterance(" ");
-        window.speechSynthesis.speak(silentUtterance);
-        
-        // Then speak the initial question - no automatic listening
-        setTimeout(() => {
-          speakText(initialQuestion);
-          // Don't automatically start listening - wait for user to click the speak button
-        }, 500);
-      }, 1000);
+      }, 500);
     };
 
-    // Use a timeout approach instead of relying on the onvoiceschanged event
-    if (window.speechSynthesis) {
-      // Force voices to load
-      window.speechSynthesis.getVoices();
-
-      // Set a timeout to ensure voices are loaded
-      setTimeout(() => {
-        // Clean up any previous event listeners
-        window.speechSynthesis.onvoiceschanged = null;
-
-        // Initialize the conversation
-        initConversation();
-      }, 800);
-    }
+    // Initialize the conversation
+    initConversation();
 
     // Cleanup
     return () => {
       if (window.speechSynthesis) {
-        window.speechSynthesis.onvoiceschanged = null;
         window.speechSynthesis.cancel(); // Cancel any ongoing speech
+      }
+      if (currentAudioRef.current) {
+        currentAudioRef.current.pause();
+        currentAudioRef.current = null;
       }
     };
   }, []);
 
   // When currentQuestion changes, ask the new question
   useEffect(() => {
-    if (conversationHistory.length > 0) {
-      // Skip the initial mount effect
+    if (conversationHistory.length > 0 && hasUserInteracted.current) {
+      // Speak the current question when it changes
+      const currentQ = questions[currentQuestion];
+      speakText(currentQ);
+      
       // For address field, provide extra guidance
       if (currentQuestion === "address") {
         const addressTip =
           language === "hi-IN"
             ? "कृपया अपने घर का नंबर, सड़क का नाम, शहर और राज्य शामिल करें।"
             : "Please include your house number, street name, city, and state.";
-        addToConversation("assistant", addressTip);
+        setTimeout(() => addToConversation("assistant", addressTip), 1000);
       }
     }
   }, [currentQuestion]);
 
-  // Function to speak text
-  const speakText = (text) => {
+  // Store current audio element to allow cancellation
+  const currentAudioRef = useRef(null);
+  const hasUserInteracted = useRef(false);
+
+  // Function to speak text using server-side TTS
+  const speakText = async (text) => {
     if (!text) return;
-    
-    // Skip speech if the browser doesn't support it
-    if (!window.speechSynthesis) {
-      console.error("Speech synthesis not supported in this browser");
-      return;
+
+    // Cancel any ongoing speech (both audio and browser TTS)
+    if (currentAudioRef.current) {
+      currentAudioRef.current.pause();
+      currentAudioRef.current = null;
     }
-    
+    if (window.speechSynthesis.speaking) {
+      window.speechSynthesis.cancel();
+    }
+
     // Set the speaking flag to true
     setIsSpeaking(true);
 
     try {
-      const synth = window.speechSynthesis;
+      console.log("Requesting TTS for:", text);
 
-      // Clear any existing speech
-      synth.cancel();
-      
-      // Reset speaking state if there was any ongoing speech
-      setTimeout(() => {
-        setIsSpeaking(false);
-      }, 100);
-      
-      // Check if speech synthesis is allowed
-      if (document.visibilityState !== 'visible') {
-        console.warn("Speech synthesis might be blocked because the page is not visible");
+      // Call the server-side TTS endpoint
+      const response = await fetch("http://localhost:5000/tts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          text: text,
+          lang: language === "hi-IN" ? "hi" : "en",
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("TTS request failed");
       }
 
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = language;
+      // Get the audio blob
+      const audioBlob = await response.blob();
+      const audioUrl = URL.createObjectURL(audioBlob);
 
-      // Get available voices
-      const voices = synth.getVoices();
-      console.log("Available voices:", voices.length);
-
-      // Try to find a voice matching the selected language
-      let voice = null;
-      if (language === "hi-IN") {
-        // Look for Hindi voice
-        voice = voices.find((v) => v.lang === "hi-IN" || v.lang.startsWith("hi"));
-        console.log("Selected Hindi voice:", voice?.name || "None found");
-      } else {
-        // Look for English voice - try multiple English variants
-        voice = voices.find(
-          (v) =>
-            v.lang === "en-US" ||
-            v.lang === "en-GB" ||
-            v.lang === "en-IN" ||
-            v.lang.startsWith("en")
-        );
-        console.log("Selected English voice:", voice?.name || "None found");
-      }
-
-      // Set the voice if found
-      if (voice) {
-        utterance.voice = voice;
-      }
-
-      // Adjust speech rate slightly slower for better clarity
-      utterance.rate = 0.9;
-      utterance.pitch = 1.0;
-      utterance.volume = 1.0;
-
-      // Handle errors
-      utterance.onerror = (event) => {
-        console.error("Speech synthesis error:", event);
-        if (event.error === 'not-allowed') {
-          console.warn("Speech synthesis permission denied. This typically happens when there was no user interaction before speech synthesis was triggered.");
-        }
-      };
+      // Create and play audio element
+      const audio = new Audio(audioUrl);
+      currentAudioRef.current = audio;
       
-      // Add end event to log completion and reset speaking state
-      utterance.onend = () => {
-        console.log("Speech synthesis completed successfully");
-        // Add a short delay before setting isSpeaking to false to prevent immediate listening
+      audio.onended = () => {
+        console.log("TTS playback completed");
+        URL.revokeObjectURL(audioUrl); // Clean up
+        currentAudioRef.current = null;
         setTimeout(() => {
           setIsSpeaking(false);
-        }, 500);
+        }, 100);
       };
 
-      // Try to speak with user gesture flag
-      try {
-        // Speak the text only if the user has interacted with the page
-        if (document.hasFocus()) {
-          synth.speak(utterance);
-        } else {
-          console.warn("Speech synthesis skipped because page does not have focus");
-        }
-      } catch (speakError) {
-        console.error("Error during speak:", speakError);
-      }
-      
-      // If not speaking after 100ms, try the fallback
-      setTimeout(() => {
-        if (!synth.speaking && voices.length > 0) {
-          console.log("Using fallback speech method");
-          try {
-            synth.speak(utterance);
-          } catch (fallbackError) {
-            console.error("Fallback speech method error:", fallbackError);
-          }
-        }
-      }, 100);
+      audio.onerror = (error) => {
+        console.error("Audio playback error:", error);
+        URL.revokeObjectURL(audioUrl);
+        currentAudioRef.current = null;
+        setIsSpeaking(false);
+      };
+
+      await audio.play();
+      console.log("TTS audio playing...");
     } catch (error) {
-      console.error("Speech synthesis setup error:", error);
+      console.error("TTS Error:", error);
+      currentAudioRef.current = null;
+      setIsSpeaking(false);
+      // Don't fallback to browser speech to avoid echo
     }
   };
 
@@ -551,79 +502,122 @@ function App() {
 
   // Flag to track if speech synthesis is active
   const [isSpeaking, setIsSpeaking] = useState(false);
-  
-  // Start speech recognition - only triggered by user clicking the speak button
-  const startListening = () => {
-    // Make sure any existing speech is canceled before starting listening
-    if (window.speechSynthesis) {
-      window.speechSynthesis.cancel();
-    }
-    
-    // Don't start listening if already listening
+
+
+  // Start recording using MediaRecorder and upload to /stt
+  const startListening = async () => {
+    // Don't start if already listening or speaking
     if (isListening) {
       console.log("Already listening");
       return;
     }
-    
-    // Don't start listening if speech synthesis is still active
+
     if (isSpeaking) {
       console.log("Speech synthesis is active, please wait until it finishes");
-      alert(language === "hi-IN" 
-        ? "कृपया सहायक के बोलने के समाप्त होने तक प्रतीक्षा करें" 
-        : "Please wait until the assistant finishes speaking");
+      alert(
+        language === "hi-IN"
+          ? "कृपया सहायक के बोलने के समाप्त होने तक प्रतीक्षा करें"
+          : "Please wait until the assistant finishes speaking"
+      );
       return;
     }
-    
-    const SpeechRecognition =
-      window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      alert("Speech Recognition not supported in this browser.");
-      return;
-    }
-    
-    // Only activate speech recognition on the assistant page
-    if (!window.location.pathname.includes('/assistant')) {
-      console.log("Speech recognition only available on assistant page");
-      return;
-    }
-    
-    // Set listening state to true to update UI
-    setIsListening(true);
-    console.log("Starting listening - microphone activated");
-    recognitionRef.current = new SpeechRecognition();
-    recognitionRef.current.lang = language;
-    recognitionRef.current.continuous = false;
 
-    recognitionRef.current.onresult = (event) => {
-      const transcript = event.results[0][0].transcript;
-      setText(transcript);
-      addToConversation("user", transcript);
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      alert(
+        language === "hi-IN"
+          ? "माइक्रोफोन समर्थित नहीं है"
+          : "Microphone not supported"
+      );
+      return;
+    }
 
-      // Send text to backend for processing
-      fetch("http://localhost:5000/process", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          text: transcript,
-          lang: language,
-          currentField: currentQuestion,
-          retryCount: retryCount[currentQuestion],
-        }),
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          setResponse(data.reply);
+    try {
+      // Mark that user has interacted (for autoplay permission)
+      if (!hasUserInteracted.current) {
+        hasUserInteracted.current = true;
+        // Speak the initial question on first click
+        const currentQ = questions[currentQuestion];
+        await speakText(currentQ);
+        // Wait a bit before starting recording
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+
+      setIsListening(true);
+      console.log("Starting audio recording...");
+
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mr = new MediaRecorder(stream);
+      const chunks = [];
+
+      mr.ondataavailable = (e) => chunks.push(e.data);
+      
+      mr.onstop = async () => {
+        try {
+          console.log("Recording stopped, processing audio...");
+          const blob = new Blob(chunks, { type: "audio/webm" });
+          const fd = new FormData();
+          fd.append("audio", blob, "recording.webm");
+
+          // Show uploading status
+          addToConversation(
+            "assistant",
+            language === "hi-IN" ? "सुन रहा हूँ..." : "Processing..."
+          );
+
+          // Send to STT endpoint
+          const resp = await fetch("http://localhost:5000/stt", {
+            method: "POST",
+            body: fd,
+          });
+
+          if (!resp.ok) {
+            throw new Error("STT request failed");
+          }
+
+          const json = await resp.json();
+          console.log("STT Response:", json);
+
+          if (!json.text || json.text.trim() === "") {
+            const noSpeechMsg =
+              language === "hi-IN"
+                ? "मुझे कुछ नहीं सुनाई दिया। कृपया फिर से बोलें।"
+                : "I didn't hear anything. Please speak again.";
+            addToConversation("assistant", noSpeechMsg);
+            speakText(noSpeechMsg);
+            return;
+          }
+
+          // Add user's transcribed text to conversation
+          setText(json.text);
+          addToConversation("user", json.text);
+
+          // Send text to backend for processing
+          const proc = await fetch("http://localhost:5000/process", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              text: json.text,
+              lang: json.lang || language,
+              currentField: currentQuestion,
+              retryCount: retryCount[currentQuestion],
+            }),
+          });
+
+          const procJson = await proc.json();
+          console.log("Process Response:", procJson);
+
+          setResponse(procJson.reply);
 
           // Update form data with the extracted information
-          if (data.extractedValue) {
+          if (procJson.extractedValue) {
             setFormData((prev) => ({
               ...prev,
-              [currentQuestion]: data.extractedValue,
+              [currentQuestion]: procJson.extractedValue,
             }));
           }
 
           // Move to the next question if value was successfully extracted
-          if (data.success) {
+          if (procJson.success) {
             // Reset retry count for this field
             setRetryCount((prev) => ({
               ...prev,
@@ -638,22 +632,30 @@ function App() {
               const nextField = fields[currentIndex + 1];
               setCurrentQuestion(nextField);
 
-              // Speak the next question - no automatic listening
+              // Speak the response and next question
               setTimeout(() => {
-                const nextQuestion = questions[nextField];
-                speakText(nextQuestion);
-                addToConversation("assistant", nextQuestion);
-                
-                // Don't automatically start listening - wait for user to click the speak button
-                // Keep this comment for documentation purposes
-              
-              }, 1500);
+                speakText(procJson.reply);
+                addToConversation("assistant", procJson.reply);
+
+                setTimeout(() => {
+                  const nextQuestion = questions[nextField];
+                  speakText(nextQuestion);
+                  addToConversation("assistant", nextQuestion);
+                }, 2000);
+              }, 500);
             } else {
               // Form completed
-              const completionMessage =
-                "Thank you! Your information has been saved.";
-              speakText(completionMessage);
-              addToConversation("assistant", completionMessage);
+              addToConversation("assistant", procJson.reply);
+              speakText(procJson.reply);
+
+              setTimeout(() => {
+                const completionMessage =
+                  language === "hi-IN"
+                    ? "धन्यवाद! सभी जानकारी एकत्र हो गई है। आप नीचे 'सभी जानकारी सबमिट करें' बटन दबाकर फॉर्म जमा कर सकते हैं।"
+                    : "Thank you! All information has been collected. You can submit the form by pressing the 'Submit All Information' button below.";
+                addToConversation("assistant", completionMessage);
+                speakText(completionMessage);
+              }, 2000);
             }
           } else {
             // Increment retry count for this field
@@ -662,119 +664,46 @@ function App() {
               [currentQuestion]: prev[currentQuestion] + 1,
             }));
 
-            // Ask the same question again if value couldn't be extracted
-            setTimeout(() => {
-              // Special handling for name field - be more persistent
-              if (currentQuestion === "name") {
-                let nameRetryMessage;
-                const count = retryCount.name + 1; // +1 because we just incremented it
-
-                if (language === "hi-IN") {
-                  if (count === 1) {
-                    nameRetryMessage =
-                      "मुझे आपका नाम समझ नहीं आया। कृपया अपना नाम स्पष्ट रूप से बताएं, 'मेरा नाम' के साथ शुरू करें।";
-                  } else if (count === 2) {
-                    nameRetryMessage =
-                      "एक बार फिर कोशिश करते हैं। कृपया अपना पूरा नाम स्पष्ट रूप से बताएं। उदाहरण के लिए, 'मेरा नाम राहुल शर्मा है'।";
-                  } else if (count >= 3) {
-                    nameRetryMessage =
-                      "मुझे समझने में कठिनाई हो रही है। कृपया बिना किसी अन्य शब्द के सिर्फ अपना नाम बताएं।";
-                  }
-                } else {
-                  if (count === 1) {
-                    nameRetryMessage =
-                      "I still didn't catch your name. Please say your name clearly, starting with 'My name is'.";
-                  } else if (count === 2) {
-                    nameRetryMessage =
-                      "Let's try once more. Please say your full name clearly. For example, 'My name is John Smith'.";
-                  } else if (count >= 3) {
-                    nameRetryMessage =
-                      "I'm having trouble understanding. Please simply state your name without any other words.";
-                  }
-                }
-
-                speakText(nameRetryMessage);
-                addToConversation("assistant", nameRetryMessage);
-                
-                // Don't automatically start listening - wait for user to click the speak button
-                // Keep this comment for documentation purposes
-              }
-              // Special handling for address field
-              else if (currentQuestion === "address") {
-                let addressRetryMessage;
-                const count = retryCount.address + 1;
-
-                if (language === "hi-IN") {
-                  if (count === 1) {
-                    addressRetryMessage =
-                      "मुझे आपका पता ठीक से नहीं मिला। कृपया अपना पूरा पता बताएं जिसमें घर का नंबर, सड़क, शहर और राज्य शामिल हो।";
-                  } else if (count === 2) {
-                    addressRetryMessage =
-                      "फिर से कोशिश करते हैं। 'मेरा पता है' से शुरू करें और फिर अपना पूरा पता बताएं।";
-                  } else if (count >= 3) {
-                    addressRetryMessage =
-                      "मुझे अभी भी समस्या हो रही है। कृपया अपना पता धीरे-धीरे और स्पष्ट रूप से बताएं, एक हिस्सा एक बार में।";
-                  }
-                } else {
-                  if (count === 1) {
-                    addressRetryMessage =
-                      "I didn't quite get your address. Please provide your complete address including house number, street, city and state.";
-                  } else if (count === 2) {
-                    addressRetryMessage =
-                      "Let's try again. Start with 'My address is' and then say your full address.";
-                  } else if (count >= 3) {
-                    addressRetryMessage =
-                      "I'm still having trouble. Please say your address slowly and clearly, one part at a time.";
-                  }
-                }
-
-                speakText(addressRetryMessage);
-                addToConversation("assistant", addressRetryMessage);
-                
-                // Don't automatically start listening - wait for user to click the speak button
-                // Keep this comment for documentation purposes
-              } else {
-                speakText(data.reply);
-                addToConversation("assistant", data.reply);
-                
-                // Don't automatically start listening - wait for user to click the speak button
-                // Keep this comment for documentation purposes
-              }
-            }, 1000);
+            // Speak the retry message
+            addToConversation("assistant", procJson.reply);
+            speakText(procJson.reply);
           }
-        })
-        .catch((err) => console.error("Error:", err))
-        .finally(() => {
+        } catch (error) {
+          console.error("Error processing audio:", error);
+          const errorMsg =
+            language === "hi-IN"
+              ? "ऑडियो प्रोसेस करने में त्रुटि। कृपया फिर से कोशिश करें।"
+              : "Error processing audio. Please try again.";
+          addToConversation("assistant", errorMsg);
+          speakText(errorMsg);
+        } finally {
           setIsListening(false);
-        });
-    };
+        }
+      };
 
-    recognitionRef.current.onend = () => {
-      console.log("Speech recognition ended");
-      setIsListening(false);
-    };
-    
-    recognitionRef.current.onerror = (event) => {
-      console.error("Speech recognition error:", event.error);
-      setIsListening(false);
-      
-      // Show alert for common errors
-      if (event.error === 'not-allowed') {
-        alert(language === "hi-IN"
-          ? "माइक्रोफोन तक पहुंच की अनुमति नहीं है। कृपया अपने ब्राउज़र सेटिंग्स की जांच करें।"
-          : "Microphone access not allowed. Please check your browser settings.");
-      }
-    };
+      mr.onerror = (event) => {
+        console.error("MediaRecorder error:", event);
+        setIsListening(false);
+      };
 
-    // Start the recognition
-    try {
-      recognitionRef.current.start();
+      mr.start();
+      console.log("Recording started...");
+
+      // Stop recording after 5 seconds
+      setTimeout(() => {
+        if (mr.state === "recording") {
+          mr.stop();
+          stream.getTracks().forEach((t) => t.stop());
+        }
+      }, 5000);
     } catch (error) {
-      console.error("Failed to start speech recognition:", error);
+      console.error("Error accessing microphone:", error);
       setIsListening(false);
-      alert(language === "hi-IN"
-        ? "माइक्रोफोन शुरू करने में समस्या। कृपया पुनः प्रयास करें।"
-        : "Problem starting microphone. Please try again.");
+      alert(
+        language === "hi-IN"
+          ? "माइक्रोफोन एक्सेस में समस्या। कृपया अपनी सेटिंग्स जांचें।"
+          : "Problem accessing microphone. Please check your settings."
+      );
     }
   };
 
@@ -786,7 +715,7 @@ function App() {
       />
       <div className="app-content-wrapper">
         <div className="header">
-          <h1> 
+          <h1>
             {language === "hi-IN"
               ? "आवाज़ फॉर्म सहायक"
               : "AI Voice Form Assistant"}
@@ -825,29 +754,42 @@ function App() {
                 }}
                 disabled={isListening || isSpeaking}
                 className={isListening ? "recording" : ""}
-                title={isSpeaking ? (language === "hi-IN" ? "सहायक बोल रहा है, कृपया प्रतीक्षा करें" : "Assistant is speaking, please wait") : ""}
+                title={
+                  isSpeaking
+                    ? language === "hi-IN"
+                      ? "सहायक बोल रहा है, कृपया प्रतीक्षा करें"
+                      : "Assistant is speaking, please wait"
+                    : ""
+                }
               >
-                {isListening
-                  ? language === "hi-IN"
-                    ? "🔴 सुन रहा हूँ..."
-                    : "🔴 Listening..."
-                  : language === "hi-IN"
-                  ? "🎤 बोलें"
-                  : "🎤 Speak"}
+                <span className="button-icon">
+                  {isListening ? "🔴" : "🎤"}
+                </span>
+                <span>
+                  {isListening
+                    ? language === "hi-IN"
+                      ? "सुन रहा हूँ..."
+                      : "Listening..."
+                    : language === "hi-IN"
+                    ? "बोलने के लिए यहाँ दबाएं"
+                    : "Tap to Speak"}
+                </span>
               </button>
               <button
                 onClick={(e) => {
                   e.preventDefault();
-                  // Initialize speech synthesis if not already initialized
                   initializeVoiceSynthesis();
-                  // Then speak the current question
                   setTimeout(() => speakText(questions[currentQuestion]), 100);
                 }}
                 className="repeat-question"
+                disabled={isListening || isSpeaking}
               >
-                {language === "hi-IN"
-                  ? "🔊 सवाल दोहराएं"
-                  : "🔊 Repeat"}
+                <span className="button-icon">🔊</span>
+                <span>
+                  {language === "hi-IN"
+                    ? "सवाल फिर से सुनें"
+                    : "Repeat Question"}
+                </span>
               </button>
             </div>
           </div>
@@ -877,6 +819,29 @@ function App() {
                   };
                   fieldLabel = hindiLabels[field] || fieldLabel;
                 }
+                const placeholders = {
+                  name: "Enter your full name",
+                  gender: "Male / Female / Other",
+                  age: "Enter your age",
+                  address: "House No, Street, City, State",
+                  phone: "10-digit phone number",
+                  workExperience: "e.g., 2 years, 6 months",
+                  skills: "e.g., Cooking, Driving, Cleaning",
+                  availability: "Full-time / Part-time / Flexible",
+                };
+                const placeholdersHI = {
+                  name: "अपना पूरा नाम लिखें",
+                  gender: "पुरुष / महिला / अन्य",
+                  age: "अपनी उम्र दर्ज करें",
+                  address: "घर नंबर, सड़क, शहर, राज्य",
+                  phone: "10 अंकों का फोन नंबर",
+                  workExperience: "जैसे: 2 वर्ष, 6 महीने",
+                  skills: "जैसे: खाना बनाना, ड्राइविंग, सफाई",
+                  availability: "फुल-टाइम / पार्ट-टाइम / लचीला",
+                };
+
+                const placeholderVal =
+                  language === "hi-IN" ? placeholdersHI : placeholders;
 
                 return (
                   <div key={field} className={`form-field ${field}`}>
@@ -884,6 +849,7 @@ function App() {
                     <input
                       type="text"
                       value={value}
+                      placeholder={placeholderVal[field]}
                       onChange={(e) => {
                         const newValue = e.target.value;
 

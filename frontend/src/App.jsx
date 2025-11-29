@@ -3,7 +3,7 @@ import { Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext.jsx";
 import ProtectedRoute from "./components/ProtectedRoute";
 import LandingPage from "./pages/LandingPage";
-import AiAssistantPage from "./pages/AiAssistantPage";
+import VoiceChatAssistant from "./pages/VoiceChatAssistant";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import ProfilePage from "./pages/ProfilePage";
@@ -15,15 +15,7 @@ const App = () => {
     <AuthProvider>
       <Routes>
         <Route path="/" element={<LandingPage />} />
-        <Route path="/assistant" element={<AiAssistantPage />} />
-        {/* <Route 
-          path="/assistant" 
-          element={
-            <ProtectedRoute>
-              <AiAssistantPage />
-            </ProtectedRoute>
-          } 
-        /> */}
+        <Route path="/assistant" element={<VoiceChatAssistant />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/jobs" element={<JobsPage />} />
