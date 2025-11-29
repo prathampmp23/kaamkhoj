@@ -37,7 +37,7 @@
   border: none;
   padding: 12px 25px;
   font-size: 1rem;
-  border-radius: 5px;
+  border-radius: 10px;
   cursor: pointer;
   transition: all 0.3s;
 }
@@ -115,7 +115,7 @@ main {
 
 .action-card {
   background-color: white;
-  border-radius: 10px;
+  border-radius: 20px;
   box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.085);
   padding: 25px;
   flex: 1;
@@ -125,7 +125,7 @@ main {
 }
 
 .action-card:hover {
-  transform: translateY(-5px);
+ 
   box-shadow: 10px 10px 25px rgba(0, 87, 184, 0.2);
 }
 
@@ -188,12 +188,12 @@ main {
   padding: 10px 20px;
   background-color: #2552fe;
   color: white;
-  border: none;
-  border-radius: 5px;
+  border-radius: 10px;
   font-weight: 500;
   cursor: pointer;
   transition: background-color 0.3s;
   font-size: 1rem;
+  text-decoration: none;
 }
 
 .action-card.highlight .action-btn {
@@ -244,13 +244,13 @@ main {
 .feature {
   /* text-align: center; */
   padding: 20px;
-  border-radius: 10px;
+  border-radius: 20px;
   transition: transform 0.3s;
   box-shadow: 2px 2px 10px #dfdfdf;
 }
 
 .feature:hover {
-  transform: translateY(-5px);
+ 
 }
 
 .feature-icon {
@@ -282,44 +282,6 @@ main {
   color: #555;
   font-size: 0.95rem;
   line-height: 1.5;
-}
-
-/* CTA Section */
-.cta-section {
-  color: rgb(0, 0, 0);
-  padding: 60px;
-  text-align: center;
-}
-
-.cta-section h2 {
-  font-size: 2rem;
-  margin-bottom: 15px;
-}
-
-.cta-section p {
-  font-size: 1.1rem;
-  margin-bottom: 30px;
-  max-width: 700px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.cta-button {
-  display: inline-block;
-  padding: 12px 30px;
-  background-color: rgb(7, 236, 210);
-  color: black;
-  border: none;
-  border-radius: 5px;
-  font-size: 1.1rem;
-  cursor: pointer;
-  transition: all 0.3s;
-  text-decoration: none;
-}
-
-.cta-button:hover {
-  color: white;
-  transform: scale(1.05);
 }
 
 /* Responsive Adjustments */

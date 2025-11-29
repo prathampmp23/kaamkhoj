@@ -16,7 +16,7 @@ const OllamaService = require('./services/OllamaService');
 const LanguageDetectionService = require('./services/LanguageDetectionService');
 
 // Initialize services
-const ollamaService = new OllamaService('http://localhost:11434'); // Adjust URL if needed
+const ollamaService = new OllamaService('http://localhost:11434'); 
 const languageDetectionService = new LanguageDetectionService();
 
 // Track if Ollama service is available

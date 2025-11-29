@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import NavigationBar from "../components/NavigationBar";
 import HeroSection from "../components/HeroSection";
 import JobListings from "../components/JobListings";
@@ -10,6 +10,8 @@ import "./LandingPage.css";
 const LandingPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [language, setLanguage] = useState("en"); // Default language is English ('en')
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Check if user has a language preference stored
@@ -102,7 +104,7 @@ const LandingPage = () => {
           title: "Contact Us",
           description: "Talk to us for help",
           button: "Call",
-        }, 
+        },
       },
       features: {
         title: "Benefits of KaamKhoj",
@@ -196,9 +198,9 @@ const LandingPage = () => {
                   </div>
                   <h3>{content[language].quickActions.voiceForm.title}</h3>
                   <p>{content[language].quickActions.voiceForm.description}</p>
-                  <button className="action-btn">
+                  <Link to="/assistant" className="action-btn">
                     {content[language].quickActions.voiceForm.button}
-                  </button>
+                  </Link>
                 </div>
 
                 <div className="action-card highlight">
@@ -207,9 +209,9 @@ const LandingPage = () => {
                   </div>
                   <h3>{content[language].quickActions.findJob.title}</h3>
                   <p>{content[language].quickActions.findJob.description}</p>
-                  <button className="action-btn">
+                  <Link to="/jobs" className="action-btn">
                     {content[language].quickActions.findJob.button}
-                  </button>
+                  </Link>
                 </div>
 
                 <div className="action-card">
@@ -218,9 +220,9 @@ const LandingPage = () => {
                   </div>
                   <h3>{content[language].quickActions.contact.title}</h3>
                   <p>{content[language].quickActions.contact.description}</p>
-                  <button className="action-btn">
+                  <Link to="/" className="action-btn">
                     {content[language].quickActions.contact.button}
-                  </button>
+                  </Link>
                 </div>
               </div>
             </section>

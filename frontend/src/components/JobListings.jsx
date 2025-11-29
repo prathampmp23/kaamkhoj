@@ -1,7 +1,10 @@
 import React from "react";
 import "./JobListings.css";
+import { Link, useNavigate } from "react-router-dom";
 
 const JobListings = ({ title, showCount = 6, language = "hi" }) => {
+  const navigate = useNavigate();
+
   const translations = {
     hi: {
       applyNow: "अभी आवेदन करें",
@@ -143,10 +146,11 @@ const JobListings = ({ title, showCount = 6, language = "hi" }) => {
         </div>
 
         <div className="view-all-container">
-          <button className="view-all-btn">
+          {/* <button className="view-all-btn"></button> */}
+          <Link to="/jobs" className="view-all-btn">
             {translations[language].viewAll}{" "}
             <i className="fas fa-arrow-right"></i>
-          </button>
+          </Link>
         </div>
       </div>
     </section>

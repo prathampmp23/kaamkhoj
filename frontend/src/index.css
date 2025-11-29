@@ -2,3 +2,16 @@ body {
   /* font-family: 'Noto Sans Devanagari', sans-serif; */
   font-family: "Inter", sans-serif;
 }
+
+body::-webkit-scrollbar {
+  width: 0px;       
+}
+
+/* body::-webkit-scrollbar-thumb {
+  background: #898989;
+  border-radius: 10px;
+}
+
+body::-webkit-scrollbar-track {
+  background: transparent;
+} */
