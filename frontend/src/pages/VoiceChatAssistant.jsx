@@ -19,6 +19,8 @@ const VoiceChatAssistant = () => {
   const [awaitingConfirmation, setAwaitingConfirmation] = useState(false);
   const [pendingValue, setPendingValue] = useState(null);
   const [pendingField, setPendingField] = useState(null);
+  const [sessionId, setSessionId] = useState(null);
+  const [useIntelligentMode, setUseIntelligentMode] = useState(true); // Use AI conversation by default
 
   const currentAudioRef = useRef(null);
   const hasUserInteracted = useRef(false);
@@ -53,9 +55,48 @@ const VoiceChatAssistant = () => {
     if (hasInitialized.current) return;
     hasInitialized.current = true;
 
-    setStatusTitle(getGreeting());
-    setStatusMessage(language === 'hi-IN' ? "शुरू करने के लिए माइक बटन दबाएं" : "Tap the mic button to start");
+    // Initialize conversation session
+    initializeConversation();
   }, []);
+
+  // Initialize AI conversation
+  const initializeConversation = async () => {
+    const newSessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    setSessionId(newSessionId);
+
+    try {
+      const response = await fetch('http://localhost:5000/conversation/init', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId: newSessionId,
+          language: language
+        })
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        setStatusTitle(data.message);
+        setStatusMessage(language === 'hi-IN' ? "माइक बटन दबाएं और बोलें" : "Tap mic and speak");
+        setUseIntelligentMode(true);
+        
+        // Store the initial question to speak on first mic tap
+        setConversationHistory([{ sender: 'assistant', message: data.message }]);
+      } else {
+        // Fallback to old mode if AI not available
+        console.warn('AI service not available, using fallback mode');
+        setUseIntelligentMode(false);
+        setStatusTitle(getGreeting());
+        setStatusMessage(language === 'hi-IN' ? "शुरू करने के लिए माइक बटन दबाएं" : "Tap the mic button to start");
+      }
+    } catch (error) {
+      console.error('Failed to initialize conversation:', error);
+      setUseIntelligentMode(false);
+      setStatusTitle(getGreeting());
+      setStatusMessage(language === 'hi-IN' ? "शुरू करने के लिए माइक बटन दबाएं" : "Tap the mic button to start");
+    }
+  };
 
   // Speak text using TTS
   const speakText = async (text) => {
@@ -129,11 +170,22 @@ const VoiceChatAssistant = () => {
       // First interaction - speak the question
       if (!hasUserInteracted.current) {
         hasUserInteracted.current = true;
-        const currentQ = questions[currentQuestion];
-        setStatusTitle(language === 'hi-IN' ? "सुन रहा हूं..." : "I'm listening...");
-        setStatusMessage(currentQ);
-        await speakText(currentQ);
-        await new Promise(resolve => setTimeout(resolve, 800)); // Wait before starting recording
+        
+        // For intelligent mode, speak the initial greeting
+        if (useIntelligentMode && statusTitle) {
+          setStatusTitle(language === 'hi-IN' ? "सुन रहा हूं..." : "I'm listening...");
+          await speakText(statusTitle);
+          await new Promise(resolve => setTimeout(resolve, 800));
+        } else if (!useIntelligentMode) {
+          // Fallback mode
+          const currentQ = questions[currentQuestion];
+          if (currentQ) {
+            setStatusTitle(language === 'hi-IN' ? "सुन रहा हूं..." : "I'm listening...");
+            setStatusMessage(currentQ);
+            await speakText(currentQ);
+            await new Promise(resolve => setTimeout(resolve, 800));
+          }
+        }
       }
 
       setIsListening(true);
@@ -149,16 +201,16 @@ const VoiceChatAssistant = () => {
       mediaRecorder.onstop = async () => {
         try {
           const blob = new Blob(chunks, { type: "audio/webm" });
-          const formData = new FormData();
-          formData.append("audio", blob, "recording.webm");
+          const formDataUpload = new FormData();
+          formDataUpload.append("audio", blob, "recording.webm");
 
           setStatusTitle(language === 'hi-IN' ? "प्रोसेस कर रहा हूं..." : "Processing...");
           setStatusMessage("");
 
-          // Send to STT
+          // Send to STT (now using improved Whisper 'small' model)
           const sttResp = await fetch("http://localhost:5000/stt", {
             method: "POST",
-            body: formData,
+            body: formDataUpload,
           });
 
           if (!sttResp.ok) throw new Error("STT failed");
@@ -169,128 +221,124 @@ const VoiceChatAssistant = () => {
               ? "मुझे कुछ नहीं सुनाई दिया। कृपया फिर से प्रयास करें।"
               : "I didn't hear anything. Please try again.";
             setStatusTitle(msg);
-            setStatusMessage(questions[currentQuestion]);
-            speakText(msg);
+            await speakText(msg);
             return;
           }
 
-          // Add to history
+          console.log('Transcribed text:', sttJson.text);
+
+          // Add user message to history
           setConversationHistory(prev => [...prev, { sender: 'user', message: sttJson.text }]);
 
-          // Check if we're waiting for confirmation
-          if (awaitingConfirmation) {
-            const confirmStatus = checkConfirmation(sttJson.text);
-            
-            if (confirmStatus === 'confirmed') {
-              // User confirmed - save the data and move to next field
-              setFormData(prev => ({
-                ...prev,
-                [pendingField]: pendingValue,
-              }));
+          // Use intelligent conversation mode if available
+          if (useIntelligentMode && sessionId) {
+            try {
+              console.log('Sending to AI conversation service...');
               
-              setAwaitingConfirmation(false);
-              setPendingValue(null);
-              setPendingField(null);
-              setRetryCount(prev => ({ ...prev, [currentQuestion]: 0 }));
+              const convResp = await fetch("http://localhost:5000/conversation/message", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  sessionId: sessionId,
+                  message: sttJson.text
+                }),
+              });
 
-              const fields = Object.keys(questions);
-              const currentIndex = fields.indexOf(currentQuestion);
-              
-              const thankYouMsg = language === 'hi-IN' 
-                ? "धन्यवाद!"
-                : "Great!";
-              
-              setConversationHistory(prev => [...prev, { sender: 'assistant', message: thankYouMsg }]);
-
-              if (currentIndex < fields.length - 1) {
-                const nextField = fields[currentIndex + 1];
-                setCurrentQuestion(nextField);
-                const nextQ = questions[nextField];
-                setStatusTitle(nextQ);
-                setStatusMessage("");
-                
-                await speakText(thankYouMsg);
-                await new Promise(resolve => setTimeout(resolve, 800));
-                await speakText(nextQ);
-              } else {
-                const doneMsg = language === 'hi-IN'
-                  ? "बहुत बढ़िया! बेसिक जानकारी मिल गई है। फोन नंबर और उम्र बाद में टेक्स्ट फॉर्म में भर सकते हैं। धन्यवाद!"
-                  : "Perfect! I have the basic information. You can provide phone number and age later in the text form. Thank you!";
-                setStatusTitle(doneMsg);
-                setStatusMessage("");
-                await speakText(doneMsg);
+              if (!convResp.ok) {
+                console.error('Conversation API failed:', convResp.status);
+                throw new Error("Conversation service failed");
               }
-              return;
+
+              const convResult = await convResp.json();
               
-            } else if (confirmStatus === 'rejected') {
-              // User wants to change - ask again
-              const retryMsg = language === 'hi-IN'
-                ? `ठीक है, ${questions[currentQuestion]}`
-                : `Okay, ${questions[currentQuestion]}`;
+              console.log('AI Response:', convResult);
+
+              // Check if we got a valid response
+              if (!convResult || !convResult.message) {
+                throw new Error("Invalid response from conversation service");
+              }
+
+              // Add assistant response to history
+              setConversationHistory(prev => [...prev, { 
+                sender: 'assistant', 
+                message: convResult.message 
+              }]);
+
+              // Update form data if extracted
+              if (convResult.extractedData) {
+                setFormData(prev => ({
+                  ...prev,
+                  ...convResult.extractedData
+                }));
+              }
+
+              // Update current field
+              if (convResult.nextField) {
+                setCurrentQuestion(convResult.nextField);
+              }
+
+              // Update UI
+              setStatusTitle(convResult.message);
+              setStatusMessage(convResult.needsConfirmation ? 
+                (language === 'hi-IN' ? "कृपया पुष्टि करें" : "Please confirm") : 
+                "");
+
+              // Speak the response
+              await speakText(convResult.message);
+
+              // Check if conversation is complete
+              if (convResult.isComplete) {
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                const completionMsg = language === 'hi-IN' ?
+                  "बहुत बढ़िया! मैंने सारी जानकारी इकट्ठा कर ली है। अब मैं आपके लिए नौकरियां खोजूंगा।" :
+                  "Excellent! I have collected all the information. Now I will search for jobs for you.";
+                
+                setConversationHistory(prev => [...prev, { 
+                  sender: 'assistant', 
+                  message: completionMsg 
+                }]);
+                await speakText(completionMsg);
+                
+                // TODO: Navigate to jobs page or save profile
+                console.log('Collected data:', formData);
+              }
+
+            } catch (convError) {
+              console.error('AI conversation error:', convError);
               
-              setAwaitingConfirmation(false);
-              setPendingValue(null);
-              setPendingField(null);
-              setStatusTitle(retryMsg);
-              setStatusMessage("");
-              setConversationHistory(prev => [...prev, { sender: 'assistant', message: retryMsg }]);
+              // Show specific error message
+              const fallbackMsg = language === 'hi-IN' ?
+                `समस्या हुई: ${convError.message}। कृपया फिर से प्रयास करें।` :
+                `Error: ${convError.message}. Please try again.`;
               
-              await speakText(retryMsg);
-              return;
-              
-            } else {
-              // Unclear response - ask again
-              const clarifyMsg = language === 'hi-IN'
-                ? "कृपया 'हाँ' या 'नहीं' में जवाब दें। क्या यह सही है?"
-                : "Please say 'yes' or 'no'. Is this correct?";
-              
-              setStatusTitle(clarifyMsg);
-              setConversationHistory(prev => [...prev, { sender: 'assistant', message: clarifyMsg }]);
-              
-              await speakText(clarifyMsg);
-              return;
+              setStatusTitle(fallbackMsg);
+              setConversationHistory(prev => [...prev, { 
+                sender: 'assistant', 
+                message: fallbackMsg 
+              }]);
+              await speakText(fallbackMsg);
             }
           }
 
-          // Normal processing - extract information
-          const processResp = await fetch("http://localhost:5000/process", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              text: sttJson.text,
-              lang: sttJson.lang || language,
-              currentField: currentQuestion,
-              retryCount: retryCount[currentQuestion] || 0,
-            }),
-          });
-
-          const processJson = await processResp.json();
-
-          // Add response to history
-          setConversationHistory(prev => [...prev, { sender: 'assistant', message: processJson.reply }]);
-          
-          setStatusTitle(processJson.reply);
-
-          // If extraction was successful, ask for confirmation
-          if (processJson.success && processJson.extractedValue) {
-            setAwaitingConfirmation(true);
-            setPendingValue(processJson.extractedValue);
-            setPendingField(currentQuestion);
-            setStatusMessage(language === 'hi-IN' ? "कृपया 'हाँ' या 'नहीं' बोलें" : "Please say 'yes' or 'no'");
+          // If intelligent mode is not enabled, acknowledge the input
+          if (!useIntelligentMode) {
+            const ackMsg = language === 'hi-IN' ?
+              `मैंने सुना: ${sttJson.text}` :
+              `I heard: ${sttJson.text}`;
             
-            await speakText(processJson.reply);
-          } else {
-            // Extraction failed - ask again
-            setRetryCount(prev => ({ ...prev, [currentQuestion]: (prev[currentQuestion] || 0) + 1 }));
-            setStatusMessage(questions[currentQuestion]);
-            await speakText(processJson.reply);
+            setStatusTitle(ackMsg);
+            setConversationHistory(prev => [...prev, { 
+              sender: 'assistant', 
+              message: ackMsg 
+            }]);
+            await speakText(ackMsg);
           }
 
         } catch (error) {
           console.error("Error:", error);
           const errMsg = language === 'hi-IN' ? "कुछ गलत हुआ। फिर कोशिश करें।" : "Something went wrong. Try again.";
           setStatusTitle(errMsg);
-          speakText(errMsg);
+          await speakText(errMsg);
         } finally {
           stream.getTracks().forEach(track => track.stop());
         }
@@ -409,7 +457,7 @@ const VoiceChatAssistant = () => {
             )}
             <video 
               className={`voice-orb ${getOrbClass()}`}
-              src="/images/original-11187fd1dc85fe35d20bf7d80454474f.mp4"
+              src="/original-11187fd1dc85fe35d20bf7d80454474f.mp4"
               autoPlay
               loop
               muted

@@ -22,10 +22,12 @@ const { extractHouseAndStreet, extractCity, extractState, partialAddresses } = r
 // Import the Ollama service and language detection service
 const OllamaService = require('./services/OllamaService');
 const LanguageDetectionService = require('./services/LanguageDetectionService');
+const ConversationService = require('./services/ConversationService');
 
 // Initialize services
 const ollamaService = new OllamaService('http://localhost:11434');
 const languageDetectionService = new LanguageDetectionService();
+const conversationService = new ConversationService('http://localhost:11434');
 
 // Track if Ollama service is available
 let ollamaAvailable = false;
@@ -548,8 +550,8 @@ app.post('/stt', upload.single('audio'), async (req, res) => {
     console.log('Running Whisper transcription...');
 
     // Run Python Whisper script
-    // Use 'base' model for good balance of speed and accuracy
-    const args = [transcribeScript, '--file', inputPath, '--model', 'base'];
+    // Use 'small' model for better multilingual accuracy (Hindi + English)
+    const args = [transcribeScript, '--file', inputPath, '--model', 'small'];
     const proc = spawn(pythonCmd, args);
 
     let outputData = '';
@@ -968,6 +970,99 @@ app.post("/saveProfile", async (req, res) => {
       message: "Failed to save profile", 
       error: error.message 
     });
+  }
+});
+
+/**
+ * NEW INTELLIGENT CONVERSATION ENDPOINTS
+ * These endpoints use the ConversationService for natural AI-powered conversations
+ */
+
+// Initialize a new conversation session
+app.post("/conversation/init", async (req, res) => {
+  try {
+    const { sessionId, language } = req.body;
+    
+    if (!sessionId) {
+      return res.status(400).json({ error: 'Session ID required' });
+    }
+    
+    // Check if Ollama is available
+    const available = await conversationService.isAvailable();
+    
+    if (!available) {
+      return res.status(503).json({ 
+        error: 'AI conversation service not available. Please ensure Ollama is running.',
+        fallbackMessage: language === 'hi-IN' ? 
+          'AI सेवा उपलब्ध नहीं है। कृपया सुनिश्चित करें कि Ollama चल रहा है।' :
+          'AI service not available. Please ensure Ollama is running.'
+      });
+    }
+    
+    conversationService.initSession(sessionId, language || 'en-IN');
+    
+    const welcomeMessage = language === 'hi-IN' ?
+      'नमस्ते! मैं आपकी नौकरी खोजने में मदद करूंगा। पहले, आपका नाम क्या है?' :
+      'Hello! I will help you find a job. First, what is your name?';
+    
+    res.json({
+      success: true,
+      message: welcomeMessage,
+      sessionId: sessionId
+    });
+  } catch (error) {
+    console.error('Error initializing conversation:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Process user input in conversation
+app.post("/conversation/message", async (req, res) => {
+  try {
+    const { sessionId, message } = req.body;
+    
+    if (!sessionId || !message) {
+      return res.status(400).json({ error: 'Session ID and message required' });
+    }
+    
+    const result = await conversationService.processInput(sessionId, message);
+    
+    res.json(result);
+  } catch (error) {
+    console.error('Error processing conversation message:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get current session data
+app.get("/conversation/data/:sessionId", async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    
+    const data = conversationService.getSessionData(sessionId);
+    
+    if (!data) {
+      return res.status(404).json({ error: 'Session not found' });
+    }
+    
+    res.json({ success: true, data: data });
+  } catch (error) {
+    console.error('Error getting session data:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Clear conversation session
+app.delete("/conversation/session/:sessionId", async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    
+    conversationService.clearSession(sessionId);
+    
+    res.json({ success: true, message: 'Session cleared' });
+  } catch (error) {
+    console.error('Error clearing session:', error);
+    res.status(500).json({ error: error.message });
   }
 });
 
